@@ -9,11 +9,11 @@
 --go
 
 
-DECLARE @Table VARCHAR(1000) = 'dbo.destination_pk'
+DECLARE @Table VARCHAR(1000) = 'dbo.destination_pk';
 
 
-SELECT	COUNT(1)																		AS numrecords
-,		CAST((COALESCE(SUM([Log Record LENGTH]), 0)) / 1024 / 1024 AS NUMERIC(12, 2))	AS size_mb
+SELECT	COUNT(1)																		AS NumOfRecords
+,		CAST((COALESCE(SUM([Log Record LENGTH]), 0)) / 1024 / 1024 AS NUMERIC(12, 2))	AS Size_MB
 FROM	sys.fn_dblog(NULL, NULL) AS D
 WHERE	AllocUnitName = @Table
 OR		AllocUnitName LIKE @Table + '%';
@@ -39,4 +39,5 @@ SELECT	OBJECT_NAME(p.object_id) AS object_name
 FROM	sys.dm_db_partition_stats	ps
 JOIN	sys.partitions				p	ON	ps.partition_id		= p.partition_id
 JOIN	sys.indexes					i	ON	p.index_id			= i.index_id
-										AND p.object_id			= i.object_id;
+										AND p.object_id			= i.object_id
+WHERE	OBJECT_NAME(p.object_id) = SUBSTRING(@Table, 5, LEN(@Table));
