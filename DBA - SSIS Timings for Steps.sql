@@ -1,19 +1,24 @@
-DECLARE @DATE DATE = GETDATE() -2
+USE SSISDB;
 
-SELECT  [executions].[folder_name]
-      , [executions].[project_name]
-      , [executions].[package_name]
-      , [executable_statistics].[execution_path]
-      , DATEDIFF(minute, [executable_statistics].[start_time], [executable_statistics].[end_time]) AS execution_time
-FROM [SSISDB].[catalog].[executions]
-INNER JOIN [SSISDB].[catalog].[executable_statistics]
-    ON [executions].[execution_id] = [executable_statistics].[execution_id]
-WHERE [executions].[start_time] >= @DATE
-and [executions].project_name = 'satsuma.HDS.etl'
-ORDER BY execution_time desc
-Merge EPT - Satsuma_src_Merge_PAN_SCHEDULES:Finished, 01:26:42, Elapsed time: 00:18:18.047.
+-- User for @SSIS
+SELECT	DISTINCT project_name
+FROM	SSISDB.[catalog].executions;
 
-DECLARE @DATE DATE = GETDATE() -2
+DECLARE @DATE DATE			= GETDATE() -2
+,		@SSIS VARCHAR(500)	= 'satsuma.etl';
+
+SELECT  e.folder_name
+,		e.project_name
+,		e.package_name
+,		es.execution_path
+,		DATEDIFF(minute, es.start_time, es.end_time) AS execution_time
+FROM	SSISDB.[catalog].executions				e
+JOIN	SSISDB.[catalog].executable_statistics	es	ON e.execution_id = es.execution_id
+WHERE	e.start_time	>= @DATE
+AND		e.project_name	= @SSIS
+ORDER BY execution_time DESC;
+
+
 
 SELECT     CAST(MSG.message_time AS datetime)	AS message_time
 ,			CASE message_source_type
@@ -29,13 +34,15 @@ SELECT     CAST(MSG.message_time AS datetime)	AS message_time
 ,			message
 ,			LEFT(message, CHARINDEX(':', message) -1)		AS Block
 ,			CONVERT(TIME(0), LEFT(RIGHT(message, 13),12))	AS execution_time
-FROM        catalog.operation_messages	MSG
-JOIN		catalog.operations			OPR	ON OPR.operation_id = MSG.operation_id
+FROM        SSISDB.[catalog].operation_messages	MSG
+JOIN		SSISDB.[catalog].operations			OPR	ON OPR.operation_id = MSG.operation_id
 WHERE		start_time			> @DATE 
 and			message				like '%:Finish%' 
 and			message				not like 'INSERT Record SQL Task:Finished%'
 and			message_source_type <> 30
 and			message_source_type <> 50
-and			OPR.object_name		= 'satsuma.HDS.etl'
+and			OPR.object_name		= @SSIS
 --ORDER BY message_time DESC
 ORDER BY execution_time DESC
+
+
