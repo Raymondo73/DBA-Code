@@ -1,4 +1,6 @@
-USE SSISDB;
+USE SSISDB
+
+SET NOCOUNT ON;
 
 -- User for @SSIS
 --SELECT	DISTINCT project_name
