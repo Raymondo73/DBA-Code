@@ -8,6 +8,8 @@
 --sp_spaceused 'dbo.source_data'
 --go
 
+SET NOCOUNT ON;
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
 
 DECLARE @Table VARCHAR(1000) = 'dbo.destination_pk';
 

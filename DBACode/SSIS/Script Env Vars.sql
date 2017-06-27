@@ -1,3 +1,6 @@
+SET NOCOUNT ON;
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+
 declare		@folder sysname = 'Satsuma'
         ,	@env sysname = 'Production'
        
