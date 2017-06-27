@@ -70,5 +70,10 @@
     <Build Include="SSIS\SSIS Inserts.sql" />
     <Build Include="SSIS\Script Env Vars.sql" />
     <Build Include="Performamce\Potential Missing Indexes.sql" />
+    <Build Include="Misc\FK without Index.sql" />
+    <Build Include="Misc\Openquery.sql" />
+    <Build Include="Performamce\Avg Fragmentation.sql" />
+    <Build Include="Misc\DB Avg Backup Size Growth.sql" />
+    <Build Include="Misc\Large Tables.sql" />
   </ItemGroup>
 </Project>
