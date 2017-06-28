@@ -1,3 +1,6 @@
+SET NOCOUNT ON;
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+
 SELECT  s.name	[schema]
 ,		o.name	[table]
 ,		fk.name [foreign_key_no_index]
