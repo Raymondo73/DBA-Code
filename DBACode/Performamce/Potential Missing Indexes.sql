@@ -2,6 +2,8 @@ SET NOCOUNT ON;
 
 /* hello there
 
+
+
  */
 
 SELECT TOP 25	dm_mid.database_id													AS DatabaseID
