@@ -1,3 +1,5 @@
+SET NOCOUNT ON;
+
 SELECT TOP 25	dm_mid.database_id													AS DatabaseID
 ,				dm_migs.avg_user_impact * (dm_migs.user_seeks+dm_migs.user_scans)	AS Avg_Estimated_Impact
 ,				dm_migs.last_user_seek												AS Last_User_Seek
