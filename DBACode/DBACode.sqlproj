@@ -75,5 +75,7 @@
     <Build Include="Performamce\Avg Fragmentation.sql" />
     <Build Include="Misc\DB Avg Backup Size Growth.sql" />
     <Build Include="Misc\Large Tables.sql" />
+    <Build Include="SSIS\SQL Merge Proc For ETL.sql" />
+    <Build Include="SSIS\SQL Select Proc For ETL.sql" />
   </ItemGroup>
 </Project>
