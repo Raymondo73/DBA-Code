@@ -6,12 +6,14 @@ Description:	Dynamically creates text for procedure for ETL
 				Change Tracking Processses		
 '****************************************************************/
 DECLARE @SourceSchemaName	VARCHAR(200)	= 'Landing'
-,		@SourceTableName	VARCHAR(200)	= 'ADDRESS'
+,		@SourceTableName	VARCHAR(200)	= 'APPLICANT'
 ,		@DestSchemaName		VARCHAR(200)	= 'EDA_TENANT1'
-,		@DestTableName		VARCHAR(200)	= 'ADDRESS'
-,		@SQL				VARCHAR(8000)	= ''
+,		@DestTableName		VARCHAR(200)	= 'APPLICANT'
+,		@SQL				VARCHAR(MAX)	= ''
+,		@SQL2				VARCHAR(MAX)	= ''
 ,		@PrimaryKey			VARCHAR(200)	= ''
-,		@IsIdentity			BIT				= 0;
+,		@IsIdentity			BIT				= 0
+,		@XML				VARCHAR(MAX)	= '';
 
 -- Get Primary Key field
 SELECT	@PrimaryKey = ccu.COLUMN_NAME
@@ -45,8 +47,8 @@ SELECT @IsIdentity = c.is_identity
 FROM	sys.tables	t
 JOIN	sys.schemas	s ON s.schema_id = t.schema_id
 JOIN	sys.columns	c ON c.object_id = t.object_id
-WHERE	t.name = @SourceTableName
-AND		s.name = @SourceSchemaName
+WHERE	t.name = @DestTableName
+AND		s.name = @DestSchemaName
 AND		c.name = @PrimaryKey;
 
 IF @IsIdentity = 1
@@ -59,61 +61,65 @@ IF @IsIdentity = 1
 			'INSERT ' + CHAR(13); 
 
 -- Insert Columns
-SELECT DISTINCT @SQL  = @SQL + '(' + SUBSTRING(
-										(SELECT ', ' +  c.name
-										FROM	sys.tables	t
-										JOIN	sys.schemas	s ON s.schema_id = t.schema_id
-										JOIN	sys.columns	c ON c.object_id = t.object_id
-										WHERE	t.name = @SourceTableName
-										AND		s.name = @SourceSchemaName	
-										AND		c.name != 'ChangeType'
-										ORDER BY c.column_id
-										FOR XML PATH (''))
-										, 2, 1000) + ')' + CHAR(13) + CHAR(13);
+SET @XML =	(
+			SELECT ', ' +  c.name
+			FROM	sys.tables	t
+			JOIN	sys.schemas	s ON s.schema_id = t.schema_id
+			JOIN	sys.columns	c ON c.object_id = t.object_id
+			WHERE	t.name = @DestTableName
+			AND		s.name = @DestSchemaName	
+			AND		c.name != 'ChangeType'
+			ORDER BY c.column_id
+			FOR XML PATH ('')
+			);
+
+SET @SQL  = @SQL + '(' + SUBSTRING(@XML	, 2, LEN(@XML)) + ')' + CHAR(13) + CHAR(13);
 
 SET @SQL = @SQL + 'VALUES ' + CHAR(13);
 
-SELECT DISTINCT @SQL  = @SQL + '(' + SUBSTRING(
-										(SELECT ', Source.' +  c.name
-										FROM	sys.tables	t
-										JOIN	sys.schemas	s ON s.schema_id = t.schema_id
-										JOIN	sys.columns	c ON c.object_id = t.object_id
-										WHERE	t.name = @SourceTableName
-										AND		s.name = @SourceSchemaName	
-										AND		c.name != 'ChangeType'
-										ORDER BY c.column_id
-										FOR XML PATH (''))
-										, 2, 1000) + ')' + CHAR(13);
+SET @XML =	(
+			SELECT ', Source.' +  c.name
+			FROM	sys.tables	t
+			JOIN	sys.schemas	s ON s.schema_id = t.schema_id
+			JOIN	sys.columns	c ON c.object_id = t.object_id
+			WHERE	t.name = @DestTableName
+			AND		s.name = @DestSchemaName	
+			AND		c.name != 'ChangeType'
+			ORDER BY c.column_id
+			FOR XML PATH ('')
+			);
+
+SET @SQL = @SQL + '(' + SUBSTRING(@XML	, 2, LEN(@XML)) + ')' + CHAR(13) + CHAR(13);
 
 			
-
-
 -- Update Columns
-SET @SQL = @SQL + ' WHEN MATCHED THEN' + CHAR(13) +
+SET @SQL2 = @SQL2 + ' WHEN MATCHED THEN' + CHAR(13) +
 					'UPDATE ' + CHAR(13) +
 					'SET		';
 
-SELECT DISTINCT @SQL  = @SQL +  SUBSTRING(
-										(SELECT ', ' +  c.name + ' = Source.' + c.name + CHAR(10)
-										FROM	sys.tables	t
-										JOIN	sys.schemas	s ON s.schema_id = t.schema_id
-										JOIN	sys.columns	c ON c.object_id = t.object_id
-										WHERE	t.name = @SourceTableName
-										AND		s.name = @SourceSchemaName
-										AND		c.name NOT IN ('IsDeleted', 'ChangeType')	
-										AND		(	@IsIdentity = 1
-												AND	c.name		!= @PrimaryKey
-												)
-										ORDER BY c.column_id
-										FOR XML PATH (''))
-										, 2, 1000) + ';' + CHAR(13) + CHAR(13) + CHAR(13);
+SET @XML =	(
+			SELECT ', ' +  c.name + ' = Source.' + c.name + CHAR(10)
+			FROM	sys.tables	t
+			JOIN	sys.schemas	s ON s.schema_id = t.schema_id
+			JOIN	sys.columns	c ON c.object_id = t.object_id
+			WHERE	t.name = @DestTableName
+			AND		s.name = @DestSchemaName
+			AND		c.name NOT IN ('IsDeleted', 'ChangeType')	
+			AND		(	@IsIdentity = 1
+					AND	c.name		!= @PrimaryKey
+					)
+			ORDER BY c.column_id
+			FOR XML PATH ('')
+			);
+
+SET @SQL2  = @SQL2 +  SUBSTRING(@XML, 2, LEN(@XML)) + ';' + CHAR(13) + CHAR(13) + CHAR(13);
 
 IF @IsIdentity = 1
-	SET @SQL = @SQL + 'SET IDENTITY_INSERT ' + @DestSchemaName + '.' + @DestTableName + ' OFF;' + CHAR(13) + CHAR(13)
+	SET @SQL2 = @SQL2 + 'SET IDENTITY_INSERT ' + @DestSchemaName + '.' + @DestTableName + ' OFF;' + CHAR(13) + CHAR(13)
 					+ '-- Soft Delete Rows....' + CHAR(13);
 
 -- Delete
-SET @SQL = @SQL + '	UPDATE d
+SET @SQL2 = @SQL2 + '	UPDATE d
 	SET		IsDeleted			= 1
 	,		ChangeTrackingID	= s.ChangeTrackingID
 	,		BIDateModified		= GETUTCDATE()
@@ -121,12 +127,10 @@ SET @SQL = @SQL + '	UPDATE d
 	'	JOIN	' + @SourceSchemaName + '.' + @SourceTableName	+ ' s ON d.' + @PrimaryKey + ' = s.' + @PrimaryKey + CHAR(13) +
 																			+ 'AND s.ChangeType = ''d'';' + CHAR(13) + CHAR(13);
 
-SET @SQL = @SQL + 			+ 'END TRY' + CHAR(13) + CHAR(13) 
+SET @SQL2 = @SQL2 + 			+ 'END TRY' + CHAR(13) + CHAR(13) 
 			+ 'BEGIN CATCH' + CHAR(13)
 			+ '	THROW;' + CHAR(13)
 			+ 'END CATCH'
 
-PRINT @SQL
-
-
-
+PRINT @SQL;
+PRINT @SQL2;

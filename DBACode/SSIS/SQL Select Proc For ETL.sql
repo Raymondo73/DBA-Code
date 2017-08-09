@@ -7,7 +7,7 @@ Description:	Dynamically creates text for procedure for ETL
 '****************************************************************/
 DECLARE @SchemaName	VARCHAR(200)	= 'EDA_TENANT1'
 ,		@TableName	VARCHAR(200)	= 'ADDRESS'
-,		@SQL		VARCHAR(8000)	= ''
+,		@SQL		VARCHAR(MAX)	= ''
 ,		@PrimaryKey	VARCHAR(200)	= '';
 
 -- Get Primary Key field
@@ -50,7 +50,7 @@ SELECT DISTINCT @SQL  = @SQL +  SUBSTRING(
 										AND		s.name = @SchemaName	
 										ORDER BY c.column_id
 										FOR XML PATH (''))
-										, 2, 1000) 
+										, 2, 8000) 
 
 SET @SQL = @SQL  
 			+ ', ISNULL(b.SYS_CHANGE_VERSION, -1) AS SYS_CHANGE_VERSION' + CHAR(13)
