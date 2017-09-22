@@ -77,5 +77,6 @@
     <Build Include="Misc\Large Tables.sql" />
     <Build Include="SSIS\SQL Merge Proc For ETL.sql" />
     <Build Include="SSIS\SQL Select Proc For ETL.sql" />
+    <Build Include="SSIS\Create Environment and Variables.sql" />
   </ItemGroup>
 </Project>
