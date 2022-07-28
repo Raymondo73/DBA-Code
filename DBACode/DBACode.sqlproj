@@ -66,17 +66,21 @@
     <Build Include="SSIS\Helper for Data Flow.sql" />
     <Build Include="SSIS\Timings for Steps.sql" />
     <Build Include="SSIS\Task Timings.sql" />
-    <Build Include="SQL Agent\Job Step Timings.sql" />
+    <None Include="SQL Agent\Job Timings.sql" />
     <Build Include="SSIS\SSIS Inserts.sql" />
     <Build Include="SSIS\Script Env Vars.sql" />
-    <Build Include="Performamce\Potential Missing Indexes.sql" />
+    <None Include="Performamce\Potential Missing Indexes.sql" />
     <Build Include="Misc\FK without Index.sql" />
     <Build Include="Misc\Openquery.sql" />
-    <Build Include="Performamce\Avg Fragmentation.sql" />
+    <None Include="Performamce\Avg Index Fragmentation.sql" />
     <Build Include="Misc\DB Avg Backup Size Growth.sql" />
     <Build Include="Misc\Large Tables.sql" />
     <Build Include="SSIS\SQL Merge Proc For ETL.sql" />
     <Build Include="SSIS\SQL Select Proc For ETL.sql" />
     <Build Include="SSIS\Create Environment and Variables.sql" />
+    <None Include="SQL Agent\Job Step Timings.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Performamce\LongRunningQueries.sql" />
   </ItemGroup>
 </Project>

@@ -19,7 +19,7 @@ FROM	(
 		,			DATEPART(month, backup_start_date)						AS BackupDate
 		,			CONVERT(NUMERIC(10, 2), AVG(backup_size / 1048576.0))	AS AvgSizeMB
 		FROM		msdb.dbo.backupset
-		WHERE		database_name NOT IN ('master', 'msdb', 'model', 'tempdb', 'DBS_Maintenance', 'DBSAdmin')
+		WHERE		database_name NOT IN ('master', 'msdb', 'model', 'tempdb')
 		AND			[type] = 'D'
 		AND			DATEPART(year, backup_start_date) = DATEPART(year, GETDATE())
 		GROUP BY	database_name

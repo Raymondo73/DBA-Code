@@ -8,11 +8,11 @@ DECLARE @DBID		INT
 SELECT	@DBID		= MIN(database_id)
 ,		@MaxDBID	= MAX(database_id)
 FROM	sys.databases
-WHERE	[name] NOT IN ('master', 'tempdb', 'model', 'msdb', 'Monitoring', 'SSISDB', 'DBS_Maintenance', 'DBSAdmin');
+WHERE	[name] NOT IN ('master', 'tempdb', 'model', 'msdb', 'SSISDB');
 
-	CREATE TABLE #Index(	DatabaseName VARCHAR(50), SchemaName VARCHAR(50), TableName VARCHAR(100)
-						,	IndexName VARCHAR(100), IndexType VARCHAR(100), AvgPageFrag DECIMAL(10,2)
-						,	PageCounts INT);
+CREATE TABLE #Index(	DatabaseName VARCHAR(50), SchemaName VARCHAR(50), TableName VARCHAR(100)
+					,	IndexName VARCHAR(100), IndexType VARCHAR(100), AvgPageFrag DECIMAL(10,2)
+					,	PageCounts INT);
 
 WHILE @DBID <= @MaxDBID
 BEGIN
@@ -36,7 +36,7 @@ BEGIN
 
 	SELECT	@DBID = MIN(database_id) 
 	FROM	sys.databases
-	WHERE	[name]		NOT IN ('master', 'tempdb', 'model', 'msdb', 'Monitoring', 'SSISDB', 'DBS_Maintenance', 'DBSAdmin')
+	WHERE	[name]		NOT IN ('master', 'tempdb', 'model', 'msdb', 'SSISDB')
 	AND		database_id > @DBID;
 
 	IF @DBID IS NULL SET @DBID = @MaxDBID + 1;

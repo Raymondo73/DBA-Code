@@ -17,14 +17,4 @@ AND			i.OBJECT_ID		> 255
 GROUP BY	t.Name, s.Name, p.Rows
 ORDER BY	(SUM(a.total_pages) * 8) / 1024 DESC
 ,			s.Name
-,			t.name
-
-select min(CreateDate) 
-,		max(CreateDate)
-from landing.Application_dbo_ApplicationEvent (nolock)
-
-select	top 50 *
-from landing.Application_dbo_ApplicationEvent (nolock)
-where ApplicationId = 8740748
-
-sp_columns 'Application_dbo_ApplicationEvent'
+,			t.name;
