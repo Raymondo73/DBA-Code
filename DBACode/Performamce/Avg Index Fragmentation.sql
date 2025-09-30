@@ -1,61 +1,101 @@
 SET NOCOUNT ON;
 SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
 
+DECLARE @TopPerDb   int          = 50      -- only check the top-N largest indexes per DB
+,       @MinPages   int          = 1000    -- ignore tiny indexes
+,       @MinFrag    decimal(5,2) = 15.0    -- show only > this fragmentation
+,       @PauseMs    int          = 250     -- short pause between DBs to be nice
+,       @UseSampled bit          = 1;      -- 1 = SAMPLED, 0 = LIMITED
+
 BEGIN TRY
+    IF OBJECT_ID('tempdb..#Index') IS NOT NULL DROP TABLE #Index;
 
-	DECLARE @DBID		INT 
-	,		@MaxDBID	INT;
+    CREATE TABLE #Index
+    (
+        DatabaseName    SYSNAME
+    ,   SchemaName      SYSNAME
+    ,   TableName       SYSNAME
+    ,   IndexName       SYSNAME
+    ,   IndexType       NVARCHAR(60)
+    ,   AvgPageFrag     DECIMAL(10,2)
+    ,   PageCounts      BIGINT
+    );
 
-	SELECT	@DBID		= MIN(database_id)
-	,		@MaxDBID	= MAX(database_id)
-	FROM	sys.databases
-	WHERE	[name] NOT IN ('master', 'tempdb', 'model', 'msdb', 'SSISDB');
+    DECLARE @db     SYSNAME
+    ,       @sql    NVARCHAR(MAX)
+    ,       @mode   NVARCHAR(20) = CASE WHEN @UseSampled = 1 THEN N'SAMPLED' ELSE N'LIMITED' END;
 
-	CREATE TABLE #Index	(	DatabaseName VARCHAR(50), SchemaName VARCHAR(50), TableName VARCHAR(100)
-						,	IndexName VARCHAR(100), IndexType VARCHAR(100), AvgPageFrag DECIMAL(10,2)
-						,	PageCounts INT
-						);
+    DECLARE dbs CURSOR FAST_FORWARD FOR
+    SELECT  name
+    FROM    sys.databases
+    WHERE   name NOT IN ('master','model','msdb','tempdb','SSISDB')
+    AND     state_desc = 'ONLINE'
+    AND     source_database_id IS NULL; -- no snapshots
 
-	WHILE @DBID <= @MaxDBID
-	BEGIN
-		INSERT INTO #Index	
-		SELECT	TOP 20 
-				DB_NAME(ips.DATABASE_ID)							AS [Database Name]
-		,		sch.name											AS [Schema Name]
-		,		CONVERT(VARCHAR(100), OBJECT_NAME(IPS.OBJECT_ID))	AS [Table Name]
-		,		ind.NAME											AS [Index Name]
-		,		ips.INDEX_TYPE_DESC									AS [Index Type]
-		,		ROUND(ips.AVG_FRAGMENTATION_IN_PERCENT, 2)			AS [Avg Page Fragmentation]
-		,		ips.PAGE_COUNT										AS [Page Counts]
-		FROM	sys.dm_db_index_physical_stats(@DBID,NULL,NULL,NULL,'LIMITED')	ips
-		JOIN	sys.tables														tbl	ON	ips.object_id	= tbl.object_id
-		JOIN	sys.schemas														sch	ON	tbl.schema_id	= sch.schema_id  
-		JOIN	sys.indexes														ind ON	ips.index_id	= ind.index_id 
-																					AND	ips.object_id	= ind.object_id
-		JOIN	sys.dm_db_partition_stats										ps	ON	ps.object_id	= ips.object_id 
-																					AND	ps.index_id		= ips.index_id
-		ORDER BY ips.avg_fragmentation_in_percent DESC
+    OPEN dbs;
+    FETCH NEXT FROM dbs INTO @db;
 
-		SELECT	@DBID = MIN(database_id) 
-		FROM	sys.databases
-		WHERE	[name]		NOT IN ('master', 'tempdb', 'model', 'msdb', 'SSISDB')
-		AND		database_id > @DBID;
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        SET @sql = N'
+            USE ' + QUOTENAME(@db) + N';
+            WITH big_ix AS (
+                SELECT      TOP(' + CAST(@TopPerDb AS nvarchar(10)) + N')
+                            p.object_id
+                ,           p.index_id
+                ,           SUM(p.page_count) AS page_count
+                FROM        sys.dm_db_partition_stats AS p
+                WHERE       p.index_id > 0 -- ignore heaps
+                GROUP BY    p.object_id, p.index_id
+                HAVING      SUM(p.page_count) >= ' + CAST(@MinPages AS nvarchar(20)) + N'
+                ORDER BY    SUM(p.page_count) DESC
+            )
+            INSERT INTO #Index
+                        (DatabaseName, SchemaName, TableName, IndexName, IndexType, AvgPageFrag, PageCounts)
+            SELECT      DB_NAME()                                                           AS DatabaseName
+            ,           sch.name                                                            AS SchemaName
+            ,           OBJECT_NAME(b.object_id)                                            AS TableName
+            ,           ix.name                                                             AS IndexName
+            ,           ips.index_type_desc                                                 AS IndexType
+            ,           CONVERT(decimal(10,2), ROUND(ips.avg_fragmentation_in_percent,2))   AS AvgPageFrag
+            ,           ips.page_count                                                      AS PageCounts
+            FROM        big_ix          b
+            JOIN        sys.indexes     ix  ON  b.object_id = ix.object_id 
+                                            AND b.index_id  = ix.index_id
+            JOIN        sys.tables      t   ON  t.object_id = b.object_id
+            JOIN        sys.schemas     sch ON sch.schema_id = t.schema_id
+            CROSS APPLY sys.dm_db_index_physical_stats(DB_ID(), b.object_id, b.index_id, NULL, ''' + @mode + N''') AS ips
+            WHERE       ix.is_hypothetical                  = 0
+            AND         ix.is_disabled                      = 0
+            AND         ips.alloc_unit_type_desc            = ''IN_ROW_DATA''
+            AND         ips.avg_fragmentation_in_percent    >= ' + CAST(@MinFrag AS nvarchar(20)) + N'
+            OPTION (MAXDOP 1, RECOMPILE);';
 
-		IF @DBID IS NULL SET @DBID = @MaxDBID + 1;
+        BEGIN TRY
+            EXEC sys.sp_executesql @sql;
+        END TRY
 
-	END
+        BEGIN CATCH
+            -- swallow per-DB errors and keep going
+            PRINT CONCAT('Skipped ', @db, ' due to: ', ERROR_MESSAGE());
+        END CATCH;
+
+        WAITFOR DELAY '00:00:01'; -- 1 second
 
 
-	SELECT		* 
-	FROM		#Index 
-	WHERE		AvgPageFrag > 15 
-	AND			PageCounts	> 1000 
-	ORDER BY	AvgPageFrag DESC;
+        FETCH NEXT FROM dbs INTO @db;
+    END
 
-	DROP TABLE #Index;
+    CLOSE dbs; DEALLOCATE dbs;
+
+    SELECT      *
+    FROM        #Index
+    ORDER BY    AvgPageFrag DESC
+    ,           PageCounts DESC;
+
+    DROP TABLE #Index;
 END TRY
-
 BEGIN CATCH
-	DROP TABLE #Index;
-	THROW;
-END CATCH
+    IF OBJECT_ID('tempdb..#Index') IS NOT NULL DROP TABLE #Index;
+    THROW;
+END CATCH;
