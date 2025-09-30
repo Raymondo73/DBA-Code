@@ -1,4 +1,4 @@
--- This enumerates AD group members that map to SQL logins. It’s extremely useful on first-day audits.
+-- This enumerates AD group members that map to SQL logins. 
 -- Red flags: Broad AD groups that implicitly put many users into sysadmin/server access.
 
 -- List Windows groups with server access
