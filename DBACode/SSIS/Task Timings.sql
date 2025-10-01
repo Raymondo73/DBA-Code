@@ -28,7 +28,7 @@ SELECT		em.package_name
 FROM		[catalog].event_messages	em
 JOIN		[catalog].operations		o	ON o.operation_id = em.operation_id
 WHERE		CONVERT(DATE, em.message_time)	>= GETDATE()-1
-AND			o.object_name					= 'Satsuma.etl'
+--AND			o.object_name					= 'Satsuma.etl'
 AND			em.message_source_type			< 60 -- Data Flow
 AND			em.event_name					IN ('OnPreExecute', 'OnPostExecute')
 AND			em.message_source_name			!= 'WriteEvent'
@@ -46,11 +46,8 @@ SELECT		em.*
 FROM		[catalog].event_messages	em
 JOIN		[catalog].operations		o	ON	o.operation_id = em.operation_id
 WHERE		CONVERT(DATE, em.message_time)	>= GETDATE()-1
-AND			o.object_name					= 'Satsuma.etl'
+--AND			o.object_name					= 'Satsuma.etl'
 AND			em.message_source_type			= 40 -- Data Flow
 AND			em.event_name					IN ('OnPreExecute', 'OnPostExecute')
-AND			em.package_name					= 'Interface_DimAgreement.dtsx'
-AND			em.message_source_name			= 'SQL - Get Final RowCount'
-
-
-SELECT COUNT(*) AS RcEnd FROM Interface.DimAgreement
+--AND			em.package_name					= 'Interface_DimAgreement.dtsx'
+--AND			em.message_source_name			= 'SQL - Get Final RowCount'

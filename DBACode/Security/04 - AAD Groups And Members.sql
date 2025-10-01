@@ -9,6 +9,7 @@ WHERE	type_desc = 'WINDOWS_GROUP';
 
 -- Temp table matching xp_logininfo output
 IF OBJECT_ID('tempdb..#GroupMembers') IS NOT NULL DROP TABLE #GroupMembers;
+--IF OBJECT_ID('tempdb..#WinGroups') IS NOT NULL DROP TABLE #WinGroups;
 
 CREATE TABLE #GroupMembers 
 (

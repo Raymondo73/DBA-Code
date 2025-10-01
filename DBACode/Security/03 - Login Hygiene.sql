@@ -7,6 +7,7 @@ SELECT      name
 ,           is_policy_checked
 ,           is_expiration_checked
 FROM        sys.sql_logins
+WHERE       name   NOT LIKE '##MS_%'   -- exclude system cert logins
 ORDER BY    name;
 
 -- Default DBs that don't exist (all principals)

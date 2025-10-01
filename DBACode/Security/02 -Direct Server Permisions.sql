@@ -15,5 +15,6 @@ AND         pe.permission_name IN   (
                                     'CONTROL SERVER','ALTER ANY LOGIN','IMPERSONATE ANY LOGIN'
                                 , 'VIEW SERVER STATE','ALTER ANY CREDENTIAL','ALTER ANY SERVER ROLE'
                                 )
+AND         NOT (pr.type_desc = 'CERTIFICATE_MAPPED_LOGIN' AND pr.name LIKE '##MS_%')
 ORDER BY    pe.permission_name
 ,           Grantee;

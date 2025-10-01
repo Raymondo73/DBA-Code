@@ -43,8 +43,8 @@ CROSS APPLY		sys.dm_exec_sql_text(plan_handle)		t
 CROSS APPLY		sys.dm_exec_query_plan(plan_handle)		qp
 WHERE			t.dbid = DB_ID()
 ORDER BY 	
-				qs.execution_count DESC				-- frequently ran query
+--				qs.execution_count DESC				-- frequently ran query
 --				[Total Logical Reads (MB)] DESC		-- High Disk Reading query
 --				[Avg Worker Time (ms)] DESC			-- High CPU query
---				[Avg Elapsed Time (ms)] DESC		-- Long Running query
+				[Avg Elapsed Time (ms)] DESC		-- Long Running query
 OPTION (RECOMPILE);

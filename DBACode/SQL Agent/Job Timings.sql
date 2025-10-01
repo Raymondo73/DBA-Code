@@ -20,7 +20,7 @@ SELECT		j.name													AS JobName
 FROM		msdb.dbo.sysjobs		j 
 JOIN		msdb.dbo.sysjobhistory	h	ON j.job_id = h.job_id 
 WHERE		j.[enabled] = 1  --Only Enabled Jobs
-AND			j.name		= @JobName
+--AND			j.name		= @JobName
 AND			h.step_id	= 0
 ORDER BY	JobName
 ,			RunDateTime DESC;

@@ -36,7 +36,7 @@ SELECT      j.name                                          AS JobName
 ,           msdb.dbo.agent_datetime(h.run_date, h.run_time) AS RunDateTime
 FROM        msdb.dbo.sysjobhistory  h
 JOIN        msdb.dbo.sysjobs        j ON j.job_id = h.job_id
-WHERE       h.step_id       > 0           -- step rows only
+WHERE       h.step_id       > 0        -- step rows only
 AND         h.run_status    = 0        -- failed
 AND         h.run_date      >= CONVERT(INT, CONVERT(CHAR(8), DATEADD(DAY, -30, GETDATE()), 112))  -- last 30 days
 ORDER BY    RunDateTime DESC

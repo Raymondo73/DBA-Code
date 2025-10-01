@@ -1,4 +1,10 @@
--- Red flags: Orphans after restores/migrations (can cause broken access or mis-mapped users).
+﻿/*
+Red flags: Orphans after restores/migrations (can cause broken access or mis-mapped users).
+
+- Orphaned users can’t connect → “Login failed. The login is from an untrusted domain and cannot be used with Windows authentication.”
+- Creates mystery accounts inside the DB (confuses audits, RBAC clarity).
+- May signal incomplete migrations
+*/
 
 SET NOCOUNT ON;
 

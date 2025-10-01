@@ -1,3 +1,5 @@
+-- Run against each DB
+
 -- Red flag: High fragmentation with large page counts.
 
 -- Top 20 fragmented indexes >30% on tables >1000 pages

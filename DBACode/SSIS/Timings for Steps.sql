@@ -8,8 +8,8 @@ SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
 --FROM	SSISDB.[catalog].executions;
 
 DECLARE @DATE		DATE			= GETDATE()
-,		@SSIS		VARCHAR(500)	= 'satsuma.etl'
-,		@ExecPath	VARCHAR(1000)	= 'Warehouse_FactAgreementTransaction';
+,		@SSIS		VARCHAR(500)	= 'CRM_Email_Alerts'
+,		@ExecPath	VARCHAR(1000)	= 'Process_Email_Alert_History';
 
 
 
