@@ -1,3 +1,5 @@
+SELECT @@Version
+
 SELECT      name                AS DatabaseName
 ,           compatibility_level
 ,           CASE compatibility_level

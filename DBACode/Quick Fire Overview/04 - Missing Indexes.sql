@@ -1,8 +1,7 @@
--- Run aginst each DB
-
 -- Red flag: Very high "ImprovementMeasure" values.
 
-SELECT		migs.avg_total_user_cost * (migs.avg_user_impact * 0.01) * (migs.user_seeks + migs.user_scans)  AS ImprovementMeasure
+SELECT		DB_NAME(mid.database_id)																		AS DatabaseName
+,			migs.avg_total_user_cost * (migs.avg_user_impact * 0.01) * (migs.user_seeks + migs.user_scans)  AS ImprovementMeasure
 ,			mid.statement                                                                                   AS TableName
 ,			mid.equality_columns
 ,			mid.inequality_columns

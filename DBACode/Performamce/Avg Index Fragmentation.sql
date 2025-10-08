@@ -43,12 +43,12 @@ BEGIN TRY
                 SELECT      TOP(' + CAST(@TopPerDb AS nvarchar(10)) + N')
                             p.object_id
                 ,           p.index_id
-                ,           SUM(p.page_count) AS page_count
+                ,           SUM(p.used_page_count) AS page_count
                 FROM        sys.dm_db_partition_stats AS p
                 WHERE       p.index_id > 0 -- ignore heaps
                 GROUP BY    p.object_id, p.index_id
-                HAVING      SUM(p.page_count) >= ' + CAST(@MinPages AS nvarchar(20)) + N'
-                ORDER BY    SUM(p.page_count) DESC
+                HAVING      SUM(p.used_page_count) >= ' + CAST(@MinPages AS nvarchar(20)) + N'
+                ORDER BY    SUM(p.used_page_count) DESC
             )
             INSERT INTO #Index
                         (DatabaseName, SchemaName, TableName, IndexName, IndexType, AvgPageFrag, PageCounts)

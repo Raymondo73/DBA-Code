@@ -14,7 +14,7 @@
 - Total Elapsed Time (ms):	total wall-clock run time; high totals = overall workload impact.
 - Avg Elapsed Time (ms):	average run time; if much greater than Avg Worker Time → wait issues (IO, blocking, memory).
 
-- Spill To Temp DB:			Query spilled to tempdb (possible memory grant issue
+- Spill To Temp DB:			Query spilled to tempdb (possible memory grant issue)
 - Impicit Conversions:		May prevent index usage
 - Impicit Conversions Alt:	Scalar operator
 - Key Lookups: Potential	missing covering index

@@ -17,8 +17,7 @@ FROM        sys.dm_io_virtual_file_stats(NULL, NULL)    vfs
 JOIN        sys.master_files                            mf  ON  vfs.database_id = mf.database_id 
                                                             AND vfs.file_id     = mf.file_id
 WHERE       vfs.database_id > 4
-ORDER BY    AvgReadLatency_ms DESC
-,           AvgWriteLatency_ms DESC;
+ORDER BY    DB_NAME(vfs.database_id);
 
 -- Top queries by physical IO
 -- Shows the "heaviest" queries on disk.
