@@ -19,10 +19,23 @@ EXEC        sp_msforeachdb
              ,      size / 128.0 AS CurrentSizeMB
              ,      size / 128.0 - CAST(FILEPROPERTY(name, ''SpaceUsed'') AS INT) / 128.0 AS FreeSpaceMB
              FROM   sys.database_files
-             WHERE  type IN (0,1);';
+             WHERE  type IN (0,1)
+             --UNION
+             --SELECT DB_NAME() AS DbName
+             --,      name AS FileName
+             --,      physical_name AS PhysicalName
+             --,      type_desc
+             --,      size / 128.0 AS CurrentSizeMB
+             --,      size / 128.0 - CAST(FILEPROPERTY(name, ''SpaceUsed'') AS INT) / 128.0 AS FreeSpaceMB
+             --FROM   sys.master_files
+             --WHERE  type IN (0,1);
+             ';
     
 SELECT  * 
 FROM    #FileSize
-WHERE   dbName NOT IN ('distribution', 'master', 'model', 'msdb');
+--WHERE   dbName NOT IN ('distribution', 'master', 'model', 'msdb');
     
 DROP TABLE #FileSize;
+
+
+--select * from sys.master_files

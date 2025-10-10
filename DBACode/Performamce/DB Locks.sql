@@ -46,13 +46,17 @@ ORDER BY	wt.wait_duration_ms DESC;
 Any hot objects / escalations?
 Find objects that see lots of locks/escalations (run per DB)
 */
-SELECT
-  OBJECT_NAME(ios.object_id) AS obj_name,
-  ios.index_id,
-  ios.row_lock_count, ios.page_lock_count, ios.page_lock_wait_count,
-  ios.page_lock_wait_in_ms, ios.row_lock_wait_count, ios.row_lock_wait_in_ms,
-  ios.index_lock_promotion_attempt_count, ios.index_lock_promotion_count
-FROM sys.dm_db_index_operational_stats(DB_ID(), NULL, NULL, NULL) AS ios
-ORDER BY ios.row_lock_wait_in_ms + ios.page_lock_wait_in_ms DESC;
+SELECT		OBJECT_NAME(ios.object_id) AS obj_name
+,			ios.index_id
+,			ios.row_lock_count
+,			ios.page_lock_count
+,			ios.page_lock_wait_count
+,			ios.page_lock_wait_in_ms
+,			ios.row_lock_wait_count
+,			ios.row_lock_wait_in_ms
+,			ios.index_lock_promotion_attempt_count
+,			ios.index_lock_promotion_count
+FROM		sys.dm_db_index_operational_stats(DB_ID(), NULL, NULL, NULL) ios
+ORDER BY	ios.row_lock_wait_in_ms + ios.page_lock_wait_in_ms DESC;
 
 

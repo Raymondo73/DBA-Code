@@ -1,8 +1,8 @@
 -- Version and Build
 SELECT	SERVERPROPERTY('Edition')			AS edition
 ,		SERVERPROPERTY('ProductVersion')	AS product_version
-,		SERVERPROPERTY('ProductLevel')		AS product_level; -- RTM, SP1, SP2, etc.
-
+,		SERVERPROPERTY('ProductLevel')		AS product_level -- RTM, SP1, SP2, etc.
+,		@@VERSION							AS server_version;
 
 -- Transparent Data Encryption (TDE) 
 SELECT		d.name					AS database_name
