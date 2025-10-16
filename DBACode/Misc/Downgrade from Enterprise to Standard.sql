@@ -21,7 +21,7 @@ FROM	sys.availability_groups				ag
 JOIN	sys.availability_databases_cluster	dbcs ON ag.group_id = dbcs.group_id;
 
 -- Resource Governor
-SELECT	is_enabled 
+SELECT	is_enabled  AS ResourceGov
 FROM	sys.resource_governor_configuration;
 
 -- Memory-optimized filegroups present?

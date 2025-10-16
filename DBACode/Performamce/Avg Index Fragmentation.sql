@@ -99,3 +99,6 @@ BEGIN CATCH
     IF OBJECT_ID('tempdb..#Index') IS NOT NULL DROP TABLE #Index;
     THROW;
 END CATCH;
+
+
+--ALTER INDEX ALL ON dbo.ih_secure_chg REBUILD
