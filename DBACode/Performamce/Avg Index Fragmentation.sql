@@ -1,11 +1,11 @@
 SET NOCOUNT ON;
 SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
 
-DECLARE @TopPerDb   int          = 50      -- only check the top-N largest indexes per DB
-,       @MinPages   int          = 1000    -- ignore tiny indexes
-,       @MinFrag    decimal(5,2) = 15.0    -- show only > this fragmentation
-,       @PauseMs    int          = 250     -- short pause between DBs to be nice
-,       @UseSampled bit          = 1;      -- 1 = SAMPLED, 0 = LIMITED
+DECLARE @TopPerDb   INT          = 50      -- only check the top-N largest indexes per DB
+,       @MinPages   INT          = 1000    -- ignore tiny indexes
+,       @MinFrag    DECIMAL(5,2) = 15.0    -- show only > this fragmentation
+,       @PauseMs    INT          = 250     -- short pause between DBs to be nice
+,       @UseSampled BIT          = 1;      -- 1 = SAMPLED, 0 = LIMITED
 
 BEGIN TRY
     IF OBJECT_ID('tempdb..#Index') IS NOT NULL DROP TABLE #Index;
@@ -23,14 +23,14 @@ BEGIN TRY
 
     DECLARE @db     SYSNAME
     ,       @sql    NVARCHAR(MAX)
-    ,       @mode   NVARCHAR(20) = CASE WHEN @UseSampled = 1 THEN N'SAMPLED' ELSE N'LIMITED' END;
+    ,       @mode   NVARCHAR(20) = IIF(@UseSampled = 1, N'SAMPLED', N'LIMITED');
 
     DECLARE dbs CURSOR FAST_FORWARD FOR
     SELECT  name
     FROM    sys.databases
-    WHERE   name NOT IN ('master','model','msdb','tempdb','SSISDB')
-    AND     state_desc = 'ONLINE'
-    AND     source_database_id IS NULL; -- no snapshots
+    WHERE   name                NOT IN ('master','model','msdb','tempdb','SSISDB')
+    AND     state_desc          = 'ONLINE'
+    AND     source_database_id  IS NULL; -- no snapshots
 
     OPEN dbs;
     FETCH NEXT FROM dbs INTO @db;
@@ -46,7 +46,8 @@ BEGIN TRY
                 ,           SUM(p.used_page_count) AS page_count
                 FROM        sys.dm_db_partition_stats AS p
                 WHERE       p.index_id > 0 -- ignore heaps
-                GROUP BY    p.object_id, p.index_id
+                GROUP BY    p.object_id
+                ,           p.index_id
                 HAVING      SUM(p.used_page_count) >= ' + CAST(@MinPages AS nvarchar(20)) + N'
                 ORDER BY    SUM(p.used_page_count) DESC
             )
@@ -69,7 +70,7 @@ BEGIN TRY
             AND         ix.is_disabled                      = 0
             AND         ips.alloc_unit_type_desc            = ''IN_ROW_DATA''
             AND         ips.avg_fragmentation_in_percent    >= ' + CAST(@MinFrag AS nvarchar(20)) + N'
-            OPTION (MAXDOP 1, RECOMPILE);';
+            OPTION      (MAXDOP 1, RECOMPILE);';
 
         BEGIN TRY
             EXEC sys.sp_executesql @sql;
