@@ -3,12 +3,12 @@ SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
 
 EXEC sp_SpaceUsed 'EDA_TENANT1.APPLICATION';
 
-DECLARE	@Data			DECIMAL(15,1)= 2832872             
-,		@Rows			DECIMAL(15,1)= 2294670                                                              
+DECLARE	@Data			DECIMAL(15,1)	= 2832872             
+,		@Rows			DECIMAL(15,1)	= 2294670                                                              
 ,		@Buffer			DECIMAL(15,1)
 ,		@RowSize		DECIMAL(15,1)
 ,		@RowSize100		DECIMAL(15,1)
-,		@Buffer100		DECIMAL(15,1)= 104857600;
+,		@Buffer100		DECIMAL(15,1)	= 104857600;
 
 
 SET @Buffer = (@Data * 1024) / @Rows;
@@ -28,12 +28,12 @@ DECLARE @BufferSize INT				= 10485760
 
 WITH RowByteSize AS
 (
-SELECT	SUM(max_length) AS	RowLength
-FROM	sys.tables	t
-JOIN	sys.columns c	ON t.object_id = c.object_id
-JOIN	sys.schemas s	ON t.schema_id = s.schema_id
-WHERE	t.name = @TableName
-AND		s.name = @SchemaName
+	SELECT	SUM(max_length) AS	RowLength
+	FROM	sys.tables	t
+	JOIN	sys.columns c	ON t.object_id = c.object_id
+	JOIN	sys.schemas s	ON t.schema_id = s.schema_id
+	WHERE	t.name = @TableName
+	AND		s.name = @SchemaName
 )
 SELECT	@BufferSize / RowLength AS DefaultBufferRows
 FROM	RowByteSize;

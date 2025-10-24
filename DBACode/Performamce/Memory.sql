@@ -1,9 +1,9 @@
 ﻿-- How much memory SQL Server is using right now
-SELECT  physical_memory_in_use_kb/1024		AS MemoryUsed_MB
-,       locked_page_allocations_kb/1024		AS LockedPages_MB
+SELECT  physical_memory_in_use_kb / 1024		AS MemoryUsed_MB
+,       locked_page_allocations_kb / 1024		AS LockedPages_MB
 ,       page_fault_count
 ,       memory_utilization_percentage
-,		available_commit_limit_kb/1024		AS AvailableCommitLimit_MB
+,		available_commit_limit_kb / 1024		AS AvailableCommitLimit_MB
 FROM	sys.dm_os_process_memory;
 
 -- Shows which DBs consume the most memory in the buffer pool.
