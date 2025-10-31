@@ -11,16 +11,16 @@
 */
 
 -- Data & log files with sizes and growth settings
-SELECT      db_name(mf.database_id)                                                 AS DatabaseName
-,           d.recovery_model_desc                                                   AS RecoveryModel
-,           mf.name                                                                 AS FileName
+SELECT      db_name(mf.database_id)                                                         AS DatabaseName
+,           d.recovery_model_desc                                                           AS RecoveryModel
+,           mf.name                                                                         AS FileName
 ,           mf.physical_name
-,           type_desc                                                               AS FileType
-,           CAST(FORMAT(size * 8 / 1024, 'N0') AS VARCHAR(10)) + ' MB'              AS SizeMB
-,           CASE is_percent_growth 
-                WHEN 1 THEN CAST(growth AS VARCHAR(10)) + '%'
-                ELSE CAST(FORMAT(growth * 8 / 1024, 'N0') AS VARCHAR(10)) + ' MB'
-            END                                                                     AS GrowthSetting
+,           type_desc                                                                       AS FileType
+,           CONVERT(VARCHAR(20), FORMAT(CONVERT(BIGINT, size) * 8 / 1024, 'N0')) + ' MB'    AS SizeMB
+,           IIF(is_percent_growth = 1
+                , CAST(growth AS VARCHAR(20)) + '%'
+                , CONVERT(VARCHAR(20), FORMAT(growth * 8 / 1024, 'N0')) + ' MB'
+            )                                                                               AS GrowthSetting
 FROM        sys.master_files    mf
 JOIN        sys.databases       d   ON mf.database_id = d.database_id
 ORDER BY    DatabaseName
