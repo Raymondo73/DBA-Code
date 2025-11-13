@@ -1,7 +1,9 @@
-SELECT @@Version
+SELECT @@Version AS SQLServerVerion
 
-SELECT      name                AS DatabaseName
-,           compatibility_level
+SELECT      name                                            AS DatabaseName
+,           compatibility_level                             AS CompatibilityLevel
+,           state_desc                                      AS DBOnline
+,           recovery_model_desc                             AS RecoveryModel
 ,           CASE compatibility_level
                 WHEN 80  THEN 'SQL Server 2000'
                 WHEN 90  THEN 'SQL Server 2005'
@@ -13,7 +15,8 @@ SELECT      name                AS DatabaseName
                 WHEN 150 THEN 'SQL Server 2019'
                 WHEN 160 THEN 'SQL Server 2022'
                 ELSE 'Unknown'
-            END                 AS CompatLevelDesc
+            END                                             AS CompatibilityLevelDescription
 FROM        sys.databases
 WHERE       database_id > 4   -- exclude system DBs
 ORDER BY    name;
+

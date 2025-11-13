@@ -21,3 +21,29 @@ LEFT JOIN   msdb.dbo.sysjobservers  js ON j.job_id                      = js.job
 WHERE       j.name NOT LIKE '%-%-%-%-%'
 ORDER BY    j.name;
 
+-- Operators and Alerts
+SELECT      o.name AS OperatorName
+,           j.name AS JobName
+,           CASE j.notify_level_email
+                WHEN 1 THEN 'On Success'
+                WHEN 2 THEN 'On Failure'
+                WHEN 3 THEN 'On Completion'
+            END                             AS NotificationCondition
+FROM        msdb.dbo.sysjobs        j
+JOIN        msdb.dbo.sysoperators   o   ON j.notify_email_operator_id = o.id
+WHERE       j.notify_email_operator_id > 0
+ORDER BY    o.name
+,           j.name;
+
+
+-- Operators in Maintenance Plans
+SELECT      o.name AS OperatorName
+,           j.name AS MaintenancePlanJob
+FROM        msdb.dbo.sysoperators   o
+JOIN        msdb.dbo.sysjobs        j   ON j.notify_email_operator_id = o.id
+WHERE       j.description LIKE '%MaintenancePlan%'
+ORDER BY    o.name
+,           j.name;
+
+
+
