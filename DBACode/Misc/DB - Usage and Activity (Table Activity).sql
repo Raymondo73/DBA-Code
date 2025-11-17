@@ -50,12 +50,12 @@ FROM    usage
 ,   rollup AS 
 (
 SELECT      f.database_name
-,           OBJECT_SCHEMA_NAME(f.object_id, DB_ID(f.database_name)) AS [schema_name]
-,           OBJECT_NAME(f.object_id, DB_ID(f.database_name))        AS [object_name]
-,           SUM(IIF(kind LIKE 'READ%', cnt, 0))                     AS total_reads
-,           SUM(IIF(kind = 'WRITE', cnt, 0))                        AS total_writes
-,           MAX(IIF(kind LIKE 'READ%', last_time, NULL))            AS last_read_time
-,           MAX(IIF(kind = 'WRITE', last_time, NULL))               AS last_write_time
+,           OBJECT_SCHEMA_NAME(f.object_id, DB_ID(f.database_name))		AS [schema_name]
+,           OBJECT_NAME(f.object_id, DB_ID(f.database_name))			AS [object_name]
+,           FORMAT(SUM(IIF(kind LIKE 'READ%', cnt, 0)), 'N0')			AS total_reads
+,           FORMAT(SUM(IIF(kind = 'WRITE', cnt, 0)), 'N0')				AS total_writes
+,           MAX(IIF(kind LIKE 'READ%', last_time, NULL))				AS last_read_time
+,           MAX(IIF(kind = 'WRITE', last_time, NULL))					AS last_write_time
 FROM        flatten f
 GROUP BY    f.database_name
 ,           OBJECT_SCHEMA_NAME(f.object_id, DB_ID(f.database_name))
