@@ -20,9 +20,9 @@ BEGIN
 
         SELECT  DB_NAME()                       AS database_name
         ,       OBJECT_SCHEMA_NAME(o.object_id) AS schema_name
-        ,       OBJECT_NAME(o.object_id) AS object_name
-        ,       o.type_desc AS object_type
-        FROM    sys.objects o
+        ,       OBJECT_NAME(o.object_id)        AS object_name
+        ,       o.type_desc                     AS object_type
+        FROM    sys.objects     o
         JOIN    sys.sql_modules m ON m.object_id = o.object_id
         WHERE   m.definition LIKE ''%sp_notify_operator%''
         OR      m.definition LIKE ''%sp_send_dbmail%'';
