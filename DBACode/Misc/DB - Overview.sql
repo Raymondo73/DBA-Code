@@ -33,6 +33,7 @@ EXEC        sp_msforeachdb
     
 SELECT  * 
 FROM    #FileSize
+--ORDER BY LEFT(PhysicalName, 1)
 --WHERE   dbName NOT IN ('distribution', 'master', 'model', 'msdb');
     
 DROP TABLE #FileSize;

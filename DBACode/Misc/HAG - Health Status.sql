@@ -6,24 +6,29 @@ SELECT  @@SERVERNAME    AS server_name
 
 
 -- Overall state per replica
-SELECT  r.replica_server_name
+SELECT  ag.name                         AS ag_name
+,       r.replica_server_name
 ,       rs.role_desc
 ,       rs.operational_state_desc
 ,       rs.connected_state_desc
 ,       rs.synchronization_health_desc
 FROM    sys.availability_replicas               r
+JOIN    sys.availability_groups                 ag  ON  r.group_id      = ag.group_id
 JOIN    sys.dm_hadr_availability_replica_states rs  ON  r.group_id      = rs.group_id 
                                                     AND r.replica_id    = rs.replica_id;
 
 -- Per-database sync state
-SELECT      DB_NAME(drs.database_id) AS db
-,           drs.is_local, drs.synchronization_state_desc
+SELECT      DB_NAME(drs.database_id)        AS db
+,           ag.name                         AS ag_name
+,           drs.is_local
+,           drs.synchronization_state_desc
 ,           drs.synchronization_health_desc
 ,           drs.is_suspended
 ,           drs.redo_queue_size
 ,           drs.log_send_queue_size
 ,           drs.suspend_reason_desc
 FROM        sys.dm_hadr_database_replica_states drs
+JOIN        sys.availability_groups             ag  ON  drs.group_id      = ag.group_id
 ORDER BY    db;
 
 -- Simple view (port included)
