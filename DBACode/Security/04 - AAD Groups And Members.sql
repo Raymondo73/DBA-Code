@@ -9,8 +9,8 @@ IF OBJECT_ID('tempdb..#WinGroups') IS NOT NULL DROP TABLE #WinGroups;
 SELECT	name AS WindowsGroup
 INTO	#WinGroups
 FROM	sys.server_principals
-WHERE	type_desc = 'WINDOWS_GROUP'
-AND		name != 'WDH\CTX_SDSProval';
+WHERE	type_desc = 'WINDOWS_GROUP';
+--AND		name != 'WDH\CTX_SDSProval';
 
 CREATE TABLE #GroupMembers 
 (
@@ -36,6 +36,6 @@ DEALLOCATE c;
 
 SELECT		* 
 FROM		#GroupMembers 
-WHERE		permission_path NOT IN ('WDH\Domain Users', 'WDH\BSRS_ResponsiveRepairs', 'WDH\BSRS_TotalMobile', 'WDH\Proval')
+--WHERE		permission_path NOT IN ('WDH\Domain Users', 'WDH\BSRS_ResponsiveRepairs', 'WDH\BSRS_TotalMobile', 'WDH\Proval')
 ORDER BY	permission_path
 ,			account_name;
