@@ -1,4 +1,4 @@
-DECLARE @WindowsLogin   SYSNAME = N'AD\User'
+DECLARE @WindowsLogin   SYSNAME = N'AD\Group'
 ,       @cmd            NVARCHAR(MAX);
 
 -- Active Sessions ------------------------------------------
