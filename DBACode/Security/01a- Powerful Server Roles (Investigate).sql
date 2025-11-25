@@ -1,4 +1,4 @@
-DECLARE @WindowsLogin   SYSNAME = N'WDH\D365SQLPROD_AGENT'
+DECLARE @WindowsLogin   SYSNAME = N'AD\User'
 ,       @cmd            NVARCHAR(MAX);
 
 -- Active Sessions ------------------------------------------
