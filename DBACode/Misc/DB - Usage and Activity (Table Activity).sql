@@ -15,7 +15,7 @@ SELECT  DB_NAME(database_id) AS database_name
 ,       last_user_update
 FROM    sys.dm_db_index_usage_stats
 WHERE   database_id				> 4 -- exclude system DBs (master, msdb, model, tempdb)
-AND		DB_NAME(database_id)	!= 'SQLMaint'
+AND		DB_NAME(database_id)	NOT IN ('SQLMaint', 'DBAMaint')
 )
 ,   flatten AS 
 (
