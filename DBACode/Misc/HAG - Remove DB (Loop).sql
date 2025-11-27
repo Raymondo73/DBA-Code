@@ -8,9 +8,7 @@ SELECT  d.name
 FROM    sys.databases d
 WHERE   d.database_id   > 4
 AND     d.state         = 0                 -- ONLINE
-AND     d.name          NOT IN  (   'CCMData'
-                                ,   'CCMStatisticalData'
-                                ,   'DBAMaint'
+AND     d.name          NOT IN  (   'DBAMaint'
                                 ,   'SQLMAINT'
                                 ,   'TotalMobileIntegration'
                                 ,   'WDHInteractive'
