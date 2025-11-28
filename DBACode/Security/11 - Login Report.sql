@@ -122,6 +122,6 @@ LEFT JOIN   #DefaultTrace           dt  ON dt.LoginName     = sp.name
 LEFT JOIN   #ActiveSessions         act ON act.LoginName    = sp.name
 WHERE       sp.type         IN ('S','U','G')      -- SQL, Windows login, Windows group
 AND         sp.name         NOT LIKE '##MS_%##'
-AND         sp.principal_id > 2                   -- exclude sa/public-like
+--AND         sp.principal_id > 2                   -- exclude sa/public-like
 ORDER BY    last_login_best_effort DESC
 ,           sp.name;
