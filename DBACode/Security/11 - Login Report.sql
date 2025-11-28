@@ -75,14 +75,28 @@ END
 IF OBJECT_ID('tempdb..#ActiveSessions') IS NOT NULL DROP TABLE #ActiveSessions;
 CREATE TABLE #ActiveSessions 
 (
-    LoginName       SYSNAME PRIMARY KEY
-,   LastLoginActive DATETIME
+    LoginName           SYSNAME PRIMARY KEY
+,   LastLoginActive     DATETIME
+,   HostName            SYSNAME NULL
+,   ProgramName         NVARCHAR(256) NULL
+,   LastRequestStart    DATETIME NULL
+,   LastRequestEnd      DATETIME NULL
 );
 
 INSERT      #ActiveSessions 
-            (LoginName, LastLoginActive)
+            (   LoginName
+            ,   LastLoginActive
+            ,   HostName
+            ,   ProgramName
+            ,   LastRequestStart
+            ,   LastRequestEnd
+            )
 SELECT      s.login_name
 ,           MAX(s.login_time)
+,           MAX(s.host_name)
+,           MAX(s.program_name)
+,           MAX(s.last_request_start_time)
+,           MAX(s.last_request_end_time)
 FROM        sys.dm_exec_sessions s
 WHERE       s.is_user_process = 1
 GROUP BY    s.login_name;
@@ -109,6 +123,8 @@ END
 -- 5) Final report
 SELECT      sp.name                                                                         AS principal
 ,           sp.type_desc                                                                    AS principal_type         -- SQL_LOGIN, WINDOWS_LOGIN, WINDOWS_GROUP
+,           act.HostName
+,           act.ProgramName
 ,           sp.is_disabled
 ,           COALESCE(rc.ServerRoles, '')                                                    AS server_roles
 ,           ls.LastSuccessfulLogin                                                          AS last_successful_login_2022
