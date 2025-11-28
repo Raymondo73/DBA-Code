@@ -127,7 +127,7 @@ SELECT      sp.name                                                             
 ,           act.ProgramName
 ,           sp.is_disabled
 ,           COALESCE(rc.ServerRoles, '')                                                    AS server_roles
-,           ls.LastSuccessfulLogin                                                          AS last_successful_login_2022
+--,           ls.LastSuccessfulLogin                                                          AS last_successful_login_2022
 ,           dt.LastLoginDefaultTrace
 ,           act.LastLoginActive
 ,           COALESCE(ls.LastSuccessfulLogin, dt.LastLoginDefaultTrace, act.LastLoginActive) AS last_login_best_effort
