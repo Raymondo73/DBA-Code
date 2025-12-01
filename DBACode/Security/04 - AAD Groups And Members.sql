@@ -15,10 +15,10 @@ WHERE	type_desc = 'WINDOWS_GROUP';
 CREATE TABLE #GroupMembers 
 (
 	account_name		SYSNAME
- ,	type				NVARCHAR(20)
- ,	privilege			NVARCHAR(20)
- ,	mapped_login_name	SYSNAME
- ,	permission_path		SYSNAME
+,	type				NVARCHAR(20)
+,	privilege			NVARCHAR(20)
+,	mapped_login_name	SYSNAME
+,	permission_path		SYSNAME
 );
 
 DECLARE @g sysname;
