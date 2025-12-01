@@ -1,13 +1,22 @@
 
 -- Windows Logins -----------------------------
-SELECT  login_name
-,       host_name
-,       program_name
-,       login_time
-,       last_request_start_time
-,		last_request_end_time
-FROM	sys.dm_exec_sessions
-WHERE	is_user_process = 1;
+SELECT DISTINCT	
+			es.login_name
+,			d.name						AS DatabaseName
+,			es.host_name
+,			es.program_name
+,			es.client_interface_name
+,			es.status
+,			es.cpu_time
+,			es.memory_usage
+,			es.login_time
+,			es.last_request_start_time
+,			es.last_request_end_time
+FROM		sys.dm_exec_sessions		es
+JOIN		sys.databases				d	ON d.database_id = es.database_id
+WHERE		es.is_user_process = 1
+ORDER BY	es.login_name
+,			es.last_request_start_time;
 
 -- AD Has DB Access ----------------------------------
 SELECT      l.name					AS LoginName
