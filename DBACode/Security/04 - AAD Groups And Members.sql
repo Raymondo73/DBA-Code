@@ -18,7 +18,7 @@ CREATE TABLE #GroupMembers
 ,	type				NVARCHAR(20)
 ,	privilege			NVARCHAR(20)
 ,	mapped_login_name	SYSNAME
-,	permission_path		SYSNAME
+,	ad_group			SYSNAME
 );
 
 DECLARE @g sysname;
@@ -37,5 +37,5 @@ DEALLOCATE c;
 SELECT		* 
 FROM		#GroupMembers 
 --WHERE		permission_path NOT IN ('WDH\Domain Users', 'WDH\BSRS_ResponsiveRepairs', 'WDH\BSRS_TotalMobile', 'WDH\Proval')
-ORDER BY	permission_path
+ORDER BY	ad_group
 ,			account_name;
