@@ -101,7 +101,8 @@ BEGIN
                                     N'',''
                             )                                                                                   AS SchemaPermissions
                 FROM        sys.database_permissions    dpperm
-                JOIN        sys.schemas                 s       ON dpperm.class = 3 AND dpperm.major_id = s.schema_id
+                JOIN        sys.schemas                 s       ON  dpperm.class        = 3 
+                                                                AND dpperm.major_id     = s.schema_id
                 GROUP BY    dpperm.grantee_principal_id
                 )
                 INSERT INTO #Agg 
