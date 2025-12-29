@@ -9,7 +9,7 @@ CREATE TABLE #Agg
 ,   LoginName           SYSNAME       NULL
 ,   LoginType           NVARCHAR(60)  NULL
 ,   AuthType            NVARCHAR(60)  NULL
-,   IsOrphaned          BIT           NULL
+,   IsOrphaned          CHAR(3)       NULL
 ,   Roles               NVARCHAR(MAX) NULL
 ,   DatabasePermissions NVARCHAR(MAX) NULL
 ,   SchemaPermissions   NVARCHAR(MAX) NULL
@@ -43,7 +43,7 @@ BEGIN
                 ,   LoginName       SYSNAME        NULL
                 ,   LoginType       NVARCHAR(60)   NULL
                 ,   AuthType        NVARCHAR(60)   NULL
-                ,   IsOrphaned      BIT
+                ,   IsOrphaned      CHAR(3)
                 );
 
                 INSERT INTO #Principals 
@@ -54,7 +54,7 @@ BEGIN
                 ,           sp.name                     AS LoginName
                 ,           sp.type_desc                AS LoginType
                 ,           dp.authentication_type_desc AS AuthType
-                ,           IIF(sp.name IS NULL, 1, 0)  AS IsOrphaned
+                ,           IIF(sp.name IS NULL, ''Yes'', ''No'')  AS IsOrphaned
                 FROM        sys.database_principals dp
                 LEFT JOIN   sys.server_principals   sp    ON dp.sid = sp.sid
                 WHERE       dp.type IN (''S'',''U'',''G'',''E'',''X'')  -- SQL, Windows user/group, External (if any)
@@ -80,10 +80,10 @@ BEGIN
                 (
                 SELECT      dpperm.grantee_principal_id                                                         AS principal_id
                 ,           STRING_AGG(
-                                    (CONVERT(nvarchar(256), dpperm.permission_name) COLLATE DATABASE_DEFAULT)
-                                    + N'':'' +
-                                    (CONVERT(nvarchar(256), dpperm.state_desc) COLLATE DATABASE_DEFAULT),
-                                    N'',''
+                                    (CONVERT(nvarchar(256), dpperm.permission_name) COLLATE DATABASE_DEFAULT) + 
+                                    N'':'' +
+                                    (CONVERT(nvarchar(256), dpperm.state_desc) COLLATE DATABASE_DEFAULT)
+                                    , N'',''
                             )                                                                                   AS DatabasePermissions
                 FROM        sys.database_permissions dpperm
                 WHERE       dpperm.class = 0
@@ -93,12 +93,12 @@ BEGIN
                 (
                 SELECT      dpperm.grantee_principal_id                                                         AS principal_id
                 ,           STRING_AGG(
-                                    (CONVERT(nvarchar(256), s.name) COLLATE DATABASE_DEFAULT)
-                                    + N''|'' +
-                                    (CONVERT(nvarchar(256), dpperm.permission_name) COLLATE DATABASE_DEFAULT)
-                                    + N'':'' +
-                                    (CONVERT(nvarchar(256), dpperm.state_desc) COLLATE DATABASE_DEFAULT),
-                                    N'',''
+                                    (CONVERT(nvarchar(256), s.name) COLLATE DATABASE_DEFAULT) + 
+                                    N''|'' +
+                                    (CONVERT(nvarchar(256), dpperm.permission_name) COLLATE DATABASE_DEFAULT) + 
+                                    N'':'' +
+                                    (CONVERT(nvarchar(256), dpperm.state_desc) COLLATE DATABASE_DEFAULT)
+                                    , N'',''
                             )                                                                                   AS SchemaPermissions
                 FROM        sys.database_permissions    dpperm
                 JOIN        sys.schemas                 s       ON  dpperm.class        = 3 
@@ -130,7 +130,8 @@ END
 CLOSE db_cursor;
 DEALLOCATE db_cursor;
 
-SELECT      *
+SELECT      @@SERVERNAME AS ServerName
+,           *
 FROM        #Agg
 ORDER BY    DatabaseName
 ,           DbUser;
