@@ -38,13 +38,13 @@ SELECT		SERVERPROPERTY('ServerName')										AS ServerName
 ,			IIF(d.is_encrypted = 1, 1, 0)										AS IsTDEEnabled
 ,			sz.SizeGB															AS DatabaseSizeGB
 ,			IIF(f.FullDate IS NOT NULL, 1, 0)									AS HasFullBackup
-,			IIF(i.DiffDate IS NOT NULL, 1, 0)									AS HasDiffBackup
-,			IIF(l.LogDate  IS NOT NULL, 1, 0)									AS HasLogBackup
 ,			f.FullDate															AS LastFullBackup
-,			i.DiffDate															AS LastDiffBackup
-,			l.LogDate															AS LastLogBackup
 ,			IIF(f.FullDate IS NULL, NULL, DATEDIFF(DAY, f.FullDate, GETDATE())) AS FullAgeDays
+,			IIF(i.DiffDate IS NOT NULL, 1, 0)									AS HasDiffBackup
+,			i.DiffDate															AS LastDiffBackup
 ,			IIF(i.DiffDate IS NULL, NULL, DATEDIFF(DAY, i.DiffDate, GETDATE())) AS DiffAgeDays
+,			IIF(l.LogDate  IS NOT NULL, 1, 0)									AS HasLogBackup
+,			l.LogDate															AS LastLogBackup
 ,			IIF(l.LogDate  IS NULL, NULL, DATEDIFF(DAY, l.LogDate, GETDATE()))  AS LogAgeDays
 FROM		sys.databases	d
 LEFT JOIN	DBSize			sz	ON sz.database_id = d.database_id

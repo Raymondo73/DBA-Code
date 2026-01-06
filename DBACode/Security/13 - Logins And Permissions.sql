@@ -10,6 +10,7 @@ CREATE TABLE #Agg
 ,   LoginType           NVARCHAR(60)  NULL
 ,   AuthType            NVARCHAR(60)  NULL
 ,   IsOrphaned          CHAR(3)       NULL
+,   DifferentSID        CHAR(3)       NULL
 ,   Roles               NVARCHAR(MAX) NULL
 ,   DatabasePermissions NVARCHAR(MAX) NULL
 ,   SchemaPermissions   NVARCHAR(MAX) NULL
@@ -44,17 +45,19 @@ BEGIN
                 ,   LoginType       NVARCHAR(60)   NULL
                 ,   AuthType        NVARCHAR(60)   NULL
                 ,   IsOrphaned      CHAR(3)
+                ,   DifferentSID    CHAR(3)
                 );
 
                 INSERT INTO #Principals 
-                            (DatabaseName, principal_id, DbUser, LoginName, LoginType, AuthType, IsOrphaned)
+                            (DatabaseName, principal_id, DbUser, LoginName, LoginType, AuthType, IsOrphaned, DifferentSID)
                 SELECT      DB_NAME()
                 ,           dp.principal_id
-                ,           dp.name                     AS DbUser
-                ,           sp.name                     AS LoginName
-                ,           sp.type_desc                AS LoginType
-                ,           dp.authentication_type_desc AS AuthType
-                ,           IIF(sp.name IS NULL, ''Yes'', ''No'')  AS IsOrphaned
+                ,           dp.name                                                                 AS DbUser
+                ,           sp.name                                                                 AS LoginName
+                ,           sp.type_desc                                                            AS LoginType
+                ,           dp.authentication_type_desc                                             AS AuthType
+                ,           IIF(sp.name IS NULL, ''Yes'', ''No'')                                   AS IsOrphaned
+                ,           IIF(ISNULL(sp.sid, ''0'') != ISNULL(dp.sid, ''0''), ''Yes'', ''No'')    AS DifferentSID
                 FROM        sys.database_principals dp
                 LEFT JOIN   sys.server_principals   sp    ON dp.sid = sp.sid
                 WHERE       dp.type IN (''S'',''U'',''G'',''E'',''X'')  -- SQL, Windows user/group, External (if any)
@@ -106,13 +109,14 @@ BEGIN
                 GROUP BY    dpperm.grantee_principal_id
                 )
                 INSERT INTO #Agg 
-                            (DatabaseName, DbUser, LoginName, LoginType, AuthType, IsOrphaned, Roles, DatabasePermissions, SchemaPermissions)
+                            (DatabaseName, DbUser, LoginName, LoginType, AuthType, IsOrphaned, DifferentSID, Roles, DatabasePermissions, SchemaPermissions)
                 SELECT      p.DatabaseName
                 ,           p.DbUser
                 ,           p.LoginName
                 ,           p.LoginType
                 ,           p.AuthType
                 ,           p.IsOrphaned
+                ,           p.DifferentSID
                 ,           ra.Roles
                 ,           dba.DatabasePermissions
                 ,           spa.SchemaPermissions
