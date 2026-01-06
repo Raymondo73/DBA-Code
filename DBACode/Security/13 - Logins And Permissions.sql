@@ -52,23 +52,27 @@ BEGIN
                             (DatabaseName, principal_id, DbUser, LoginName, LoginType, AuthType, IsOrphaned, DifferentSID)
                 SELECT      DB_NAME()
                 ,           dp.principal_id
-                ,           dp.name                                                                 AS DbUser
-                ,           sp.name                                                                 AS LoginName
-                ,           sp.type_desc                                                            AS LoginType
-                ,           dp.authentication_type_desc                                             AS AuthType
-                ,           IIF(sp.name IS NULL, ''Yes'', ''No'')                                   AS IsOrphaned
-                ,           IIF(ISNULL(sp.sid, ''0'') != ISNULL(dp.sid, ''0''), ''Yes'', ''No'')    AS DifferentSID
+                ,           dp.name                                     AS DbUser
+                ,           sp_name.name                                AS LoginByName
+                ,           dp.type_desc                                AS DbUserType
+                ,           dp.authentication_type_desc                 AS AuthType
+                ,           IIF(sp_sid.name IS NULL, ''Yes'', ''No'')   AS IsOrphaned
+                ,           IIF(    sp_name.sid IS NOT NULL
+                                AND dp.sid IS NOT NULL
+                                AND sp_name.sid != dp.sid
+                                , ''Yes'', ''No''
+                            )                                           AS DifferentSID
                 FROM        sys.database_principals dp
-                LEFT JOIN   sys.server_principals   sp    ON dp.sid = sp.sid
-                WHERE       dp.type IN (''S'',''U'',''G'',''E'',''X'')  -- SQL, Windows user/group, External (if any)
-                AND         dp.name NOT IN  (
-                                                ''dbo''
+                LEFT JOIN   sys.server_principals   sp_sid  ON dp.sid       = sp_sid.sid                  
+                LEFT JOIN   sys.server_principals   sp_name ON sp_name.name COLLATE DATABASE_DEFAULT = dp.name COLLATE DATABASE_DEFAULT
+                WHERE       dp.type IN (''S'',''U'',''G'',''E'',''X'')
+                AND         dp.name NOT IN  (   ''dbo''
                                             ,   ''sys''
                                             ,   ''guest''
                                             ,   ''INFORMATION_SCHEMA''
                                             ,   ''NT AUTHORITY\NETWORK SERVICE''
                                             )
-                AND         dp.name NOT LIKE ''##%'';                  -- optional: filter internal
+                AND         dp.name NOT LIKE ''##%'';
 
 
                 WITH RoleAgg AS
