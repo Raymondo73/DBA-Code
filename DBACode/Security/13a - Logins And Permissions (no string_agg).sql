@@ -10,6 +10,7 @@ CREATE TABLE #Agg
 ,   AuthType            NVARCHAR(60)  NULL
 ,   IsOrphaned          CHAR(3)       NULL
 ,   DifferentSID        CHAR(3)       NULL
+,   LoginDisabled       CHAR(3)       NULL
 ,   Roles               NVARCHAR(MAX) NULL
 ,   DatabasePermissions NVARCHAR(MAX) NULL
 ,   SchemaPermissions   NVARCHAR(MAX) NULL
@@ -46,21 +47,23 @@ BEGIN
                 ,   AuthType        NVARCHAR(60)   NULL
                 ,   IsOrphaned      NCHAR(3)
                 ,   DifferentSID    NCHAR(3)
+                ,   LoginDisabled   NCHAR(3)
                 );
 
                 INSERT INTO #Principals 
-                            (principal_id, DbUser, LoginName, LoginType, AuthType, IsOrphaned, DifferentSID)
+                            (principal_id, DbUser, LoginName, LoginType, AuthType, IsOrphaned, DifferentSID, LoginDisabled)
                 SELECT      dp.principal_id
-                ,           dp.name                                     AS DbUser
-                ,           sp_name.name                                AS LoginByName
-                ,           dp.type_desc                                AS DbUserType
-                ,           dp.authentication_type_desc                 AS AuthType
-                ,           IIF(sp_sid.name IS NULL, ''Yes'', ''No'')   AS IsOrphaned
+                ,           dp.name                                         AS DbUser
+                ,           sp_name.name                                    AS LoginByName
+                ,           dp.type_desc                                    AS DbUserType
+                ,           dp.authentication_type_desc                     AS AuthType
+                ,           IIF(sp_sid.name IS NULL, ''Yes'', ''No'')       AS IsOrphaned
                 ,           IIF(    sp_name.sid IS NOT NULL
                                 AND dp.sid IS NOT NULL
                                 AND sp_name.sid != dp.sid
                                 , ''Yes'', ''No''
-                            )                                           AS DifferentSID
+                            )                                               AS DifferentSID
+                ,           IIF(sp_sid.is_disabled = 1, ''Yes'', ''No'')    AS LoginDisabled
                 FROM        sys.database_principals dp
                 LEFT JOIN   sys.server_principals   sp_sid  ON dp.sid       = sp_sid.sid                  
                 LEFT JOIN   sys.server_principals   sp_name ON sp_name.name COLLATE DATABASE_DEFAULT = dp.name COLLATE DATABASE_DEFAULT
@@ -76,7 +79,7 @@ BEGIN
 
 
                 INSERT INTO     #Agg 
-                                (   DatabaseName, DbUser, LoginName, LoginType, AuthType, IsOrphaned, DifferentSID
+                                (   DatabaseName, DbUser, LoginName, LoginType, AuthType, IsOrphaned, DifferentSID, LoginDisabled
                                 ,   Roles, DatabasePermissions, SchemaPermissions, ServerRoles, ServerPermissions
                                 )
                 SELECT          DB_NAME() AS DatabaseName
@@ -86,6 +89,8 @@ BEGIN
                 ,               p.AuthType
                 ,               p.IsOrphaned
                 ,               p.DifferentSID
+                ,               p.LoginDisabled
+
                 -- Roles list
                 ,               Roles = STUFF((
                                                 SELECT      N'','' + CONVERT(nvarchar(256), r.name) COLLATE DATABASE_DEFAULT
