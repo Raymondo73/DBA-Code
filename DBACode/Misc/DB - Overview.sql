@@ -5,8 +5,8 @@ CREATE TABLE #FileSize
 ,   PhysicalName        NVARCHAR(128)
 ,   type_desc           NVARCHAR(128)
 ,   recovery_model_desc NVARCHAR(128)
-,   CurrentSizeMB       VARCHAR(10)
-,   FreeSpaceMB         VARCHAR(10)
+,   CurrentSizeMB       VARCHAR(12)
+,   FreeSpaceMB         VARCHAR(12)
 );
     
 INSERT INTO #FileSize
@@ -27,6 +27,7 @@ EXEC        sp_msforeachdb
     
 SELECT      * 
 FROM        #FileSize
+--WHERE       type_desc = 'ROWS'
 ORDER by    DBName;
 --ORDER BY LEFT(PhysicalName, 1)
     

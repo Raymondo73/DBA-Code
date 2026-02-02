@@ -21,7 +21,7 @@ SELECT      b.database_name
 ,           mf.physical_device_name
 ,           mf.device_type
 ,           IIF(b.backup_finish_date IS NOT NULL AND b.is_damaged = 0, 1, 0)    AS succeeded 
-,           IIF(b.backup_finish_date IS NULL OR  b.is_damaged = 1, 1, 0)        AS failed    
+,           IIF(b.backup_finish_date IS NULL OR b.is_damaged = 1, 1, 0)         AS failed    
 FROM        msdb.dbo.backupset          b
 LEFT JOIN   msdb.dbo.backupmediafamily  mf  ON mf.media_set_id = b.media_set_id
 WHERE       b.type              IN ('D','I','L')
@@ -34,7 +34,7 @@ SELECT      database_name
 ,           COUNT(1)                                AS total_count  
 ,           SUM(succeeded)                          AS success_count
 ,           SUM(failed)                             AS failed_count 
-,           AVG(CAST(backup_size_bytes AS BIGINT))  AS avg_bytes    
+,           AVG(CONVERT(BIGINT, backup_size_bytes)) AS avg_bytes    
 FROM        raw
 GROUP BY    database_name
 ,           backup_type
@@ -46,7 +46,7 @@ SELECT      @@SERVERNAME                                    AS ServerName
 ,           a.total_count
 ,           a.success_count
 ,           a.failed_count
-,           CAST(a.avg_bytes / 1048576.0 AS DECIMAL(18,2))  AS avg_backup_size_mb 
+,           CONVERT(DECIMAL(18,2), a.avg_bytes / 1048576.0) AS avg_backup_size_mb 
 ,           ls.last_success_finish                          AS last_success_finish 
 ,           ls.device_type_desc                             AS device_type
 ,           ls.friendly_location                            AS device_type_desc
