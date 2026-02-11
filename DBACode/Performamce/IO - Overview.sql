@@ -9,8 +9,8 @@ Rule of thumb:
 SELECT      DB_NAME(vfs.database_id)                            AS DatabaseName
 ,           mf.name                                             AS LogicalName
 ,           mf.type_desc
-,           vfs.num_of_reads
-,           vfs.num_of_writes
+,           FORMAT(vfs.num_of_reads, 'N0')                      AS num_of_reads
+,           FORMAT(vfs.num_of_writes, 'N0')                     AS num_of_writes
 ,           vfs.io_stall_read_ms / NULLIF(vfs.num_of_reads,0)   AS AvgReadLatency_ms
 ,           vfs.io_stall_write_ms / NULLIF(vfs.num_of_writes,0) AS AvgWriteLatency_ms
 FROM        sys.dm_io_virtual_file_stats(NULL, NULL)    vfs
@@ -21,16 +21,16 @@ ORDER BY    DB_NAME(vfs.database_id);
 
 -- Top queries by physical IO
 -- Shows the "heaviest" queries on disk.
-SELECT TOP 20   qs.total_physical_reads
-,               qs.total_logical_reads
-,               qs.total_logical_writes
-,               qs.execution_count
-,               qs.total_elapsed_time / qs.execution_count                              AS AvgElapsedTime_ms
+SELECT TOP 20   FORMAT(qs.total_physical_reads, 'N0')                           AS total_physical_reads
+,               FORMAT(qs.total_logical_reads, 'N0')                            AS total_logical_reads
+,               FORMAT(qs.total_logical_writes, 'N0')                           AS total_logical_writes
+,               FORMAT(qs.execution_count, 'N0')                                AS execution_count
+,               FORMAT(qs.total_elapsed_time / qs.execution_count, 'N0')        AS AvgElapsedTime_ms
 ,               SUBSTRING(qt.text, (qs.statement_start_offset/2) + 1,
-                    ((CASE qs.statement_end_offset
-                        WHEN -1 THEN DATALENGTH(qt.text)
-                        ELSE qs.statement_end_offset END - qs.statement_start_offset)
-                /2)+1)                                                                  AS QueryText
-FROM            sys.dm_exec_query_stats qs
+                    ((IIF(qs.statement_end_offset = -1
+                    , DATALENGTH(qt.text)
+                    , qs.statement_end_offset) - qs.statement_start_offset)
+                / 2) + 1)                                                       AS QueryText
+FROM            sys.dm_exec_query_stats             qs
 CROSS APPLY     sys.dm_exec_sql_text(qs.sql_handle) qt
 ORDER BY        qs.total_physical_reads DESC;

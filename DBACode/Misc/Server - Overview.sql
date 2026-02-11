@@ -19,9 +19,11 @@ SELECT		SERVERPROPERTY('ServerName')										AS ServerName
 					ELSE 'Older Version'
 			END																	AS ProductVersion
 ,			SERVERPROPERTY('ProductLevel')										AS ProductLevel
+,			SERVERPROPERTY('LicenseType')										AS LicenceType 
+,			SERVERPROPERTY('NumLicenses')										AS LicenceNumber
 ,			SERVERPROPERTY('Edition')											AS SQLEdition
 ,			d.name																AS DatabaseName
-,			d.state_desc														AS [State]
+,			d.state_desc											 m			AS [State]
 ,			d.recovery_model_desc												AS RecoveryModel
 ,           CASE d.compatibility_level
                 WHEN 80  THEN 'SQL Server 2000'
@@ -74,3 +76,9 @@ OUTER APPLY (
 			) l
 WHERE		d.name != 'tempdb'
 ORDER BY	d.name;
+
+
+
+
+
+
