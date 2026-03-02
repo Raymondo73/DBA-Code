@@ -6,6 +6,11 @@ Rule of thumb:
     Writes > 5 ms → potential log file / storage issue.
 */
 
+-- Stats after this can be worked out from restart date
+SELECT  sqlserver_start_time AS LastServerRestart
+FROM    sys.dm_os_sys_info;
+
+
 SELECT      DB_NAME(vfs.database_id)                            AS DatabaseName
 ,           mf.name                                             AS LogicalName
 ,           mf.type_desc
@@ -17,6 +22,7 @@ FROM        sys.dm_io_virtual_file_stats(NULL, NULL)    vfs
 JOIN        sys.master_files                            mf  ON  vfs.database_id = mf.database_id 
                                                             AND vfs.file_id     = mf.file_id
 WHERE       vfs.database_id > 4
+AND 	    DB_NAME(vfs.database_id) NOT IN ('SQLMaint', 'DBAMaint')   
 ORDER BY    DB_NAME(vfs.database_id);
 
 -- Top queries by physical IO

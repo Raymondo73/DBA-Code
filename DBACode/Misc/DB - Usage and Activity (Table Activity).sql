@@ -1,6 +1,7 @@
 /* Summarize per object (last activity + type) across ALL databases */
 SET NOCOUNT ON;
 
+
 WITH usage AS 
 (
 SELECT  DB_NAME(database_id) AS database_name
@@ -50,12 +51,13 @@ FROM    usage
 ,   rollup AS 
 (
 SELECT      f.database_name
-,           OBJECT_SCHEMA_NAME(f.object_id, DB_ID(f.database_name))		AS [schema_name]
-,           OBJECT_NAME(f.object_id, DB_ID(f.database_name))			AS [object_name]
-,           FORMAT(SUM(IIF(kind LIKE 'READ%', cnt, 0)), 'N0')			AS total_reads
-,           FORMAT(SUM(IIF(kind = 'WRITE', cnt, 0)), 'N0')				AS total_writes
-,           MAX(IIF(kind LIKE 'READ%', last_time, NULL))				AS last_read_time
-,           MAX(IIF(kind = 'WRITE', last_time, NULL))					AS last_write_time
+,           OBJECT_SCHEMA_NAME(f.object_id, DB_ID(f.database_name))							AS [schema_name]
+,           OBJECT_NAME(f.object_id, DB_ID(f.database_name))								AS [object_name]
+,           FORMAT(SUM(IIF(kind LIKE 'READ%', cnt, 0)), 'N0')								AS total_reads
+,           FORMAT(SUM(IIF(kind = 'WRITE', cnt, 0)), 'N0')									AS total_writes
+,			FORMAT(SUM(IIF(kind LIKE 'READ%', cnt, 0) + IIF(kind = 'WRITE', cnt, 0)), 'N0') AS total_activity
+,           MAX(IIF(kind LIKE 'READ%', last_time, NULL))									AS last_read_time
+,           MAX(IIF(kind = 'WRITE', last_time, NULL))										AS last_write_time
 FROM        flatten f
 GROUP BY    f.database_name
 ,           OBJECT_SCHEMA_NAME(f.object_id, DB_ID(f.database_name))
@@ -66,10 +68,12 @@ SELECT      database_name
 ,           object_name
 ,           total_reads
 ,           total_writes
+,			total_activity
 ,           last_read_time
 ,           last_write_time
 FROM        rollup
+WHERE		database_name = 'DocumotiveDMS'
 ORDER BY    database_name
-,			COALESCE(last_write_time, last_read_time) DESC
+,			TRY_CONVERT(BIGINT, total_activity) ASC
 ,           schema_name
 ,			object_name;

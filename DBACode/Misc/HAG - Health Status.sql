@@ -31,17 +31,6 @@ FROM        sys.dm_hadr_database_replica_states drs
 JOIN        sys.availability_groups             ag  ON  drs.group_id      = ag.group_id
 ORDER BY    db;
 
--- Simple view (port included)
-SELECT  name
-,       protocol_desc
-,       type_desc
-,       state_desc
-,       is_dynamic_port
-,       port
-,       ip_address
-FROM    sys.tcp_endpoints
-WHERE   type_desc = 'DATABASE_MIRRORING';
-
 -- With endpoint metadata join
 SELECT  e.name
 ,       e.protocol_desc

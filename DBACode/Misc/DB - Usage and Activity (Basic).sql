@@ -26,16 +26,16 @@ FROM		usage
 ORDER BY	COALESCE(last_seek, last_scan, last_lookup, last_update) DESC;
 
 -- Snapshot-style counters per file; take a note of values now
-SELECT		DB_NAME(vfs.database_id) AS database_name
-,			mf.name                  AS logical_name
+SELECT		DB_NAME(vfs.database_id)				AS database_name
+,			mf.name									AS logical_name
 ,			mf.type_desc
 ,			vfs.file_id
-,			vfs.num_of_reads
-,			vfs.num_of_writes
-,			vfs.num_of_bytes_read    AS bytes_read
-,			vfs.num_of_bytes_written AS bytes_written
-,			vfs.sample_ms
-,			vfs.size_on_disk_bytes
+,			FORMAT(vfs.num_of_reads, 'N0')			AS num_of_reads
+,			FORMAT(vfs.num_of_writes, 'N0')			AS num_of_writes
+,			FORMAT(vfs.num_of_bytes_read, 'N0')		AS bytes_read
+,			FORMAT(vfs.num_of_bytes_written, 'N0')	AS bytes_written
+,			FORMAT(vfs.sample_ms, 'N0')				AS sample_ms
+,			FORMAT(vfs.size_on_disk_bytes,'N0')		AS size_on_disk_bytes
 FROM		sys.dm_io_virtual_file_stats(NULL, NULL)	vfs
 JOIN		sys.master_files							mf	ON	vfs.database_id = mf.database_id 
 															AND vfs.file_id		= mf.file_id

@@ -39,17 +39,17 @@ FROM        raw
 GROUP BY    database_name
 ,           backup_type
 )
-SELECT      @@SERVERNAME                                    AS ServerName
-,           a.database_name
-,           IIF(d.database_id <= 4, 'System', 'User')       AS DBCategory
-,           a.backup_type
-,           a.total_count
-,           a.success_count
-,           a.failed_count
-,           CONVERT(DECIMAL(18,2), a.avg_bytes / 1048576.0) AS avg_backup_size_mb 
-,           ls.last_success_finish                          AS last_success_finish 
-,           ls.device_type_desc                             AS device_type
-,           ls.friendly_location                            AS device_type_desc
+SELECT      @@SERVERNAME                                                    AS ServerName
+,           a.database_name                                                 AS DatabaseName
+,           IIF(d.database_id <= 4, 'System', 'User')                       AS DBCategory
+,           a.backup_type                                                   AS BackupType
+,           a.total_count                                                   AS TotalBackups
+,           a.success_count                                                 AS SuccessCount
+,           a.failed_count                                                  AS FailedCount
+,           FORMAT(CONVERT(DECIMAL(18,2), a.avg_bytes / 1048576.0), 'N0')   AS AverageBackpupSizeMB 
+,           ls.last_success_finish                                          AS LastSuccessfulBackupFinish  
+,           ls.device_type_desc                                             AS DeviceTypeDescription
+,           ls.friendly_location                                            AS BackupLocation
 FROM        agg                   a           
 LEFT JOIN   master.sys.databases  d ON d.name = a.database_name
 OUTER APPLY (
