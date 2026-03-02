@@ -14,7 +14,7 @@ ARCHIVE (archive):
 #>
 param
 (
-  [Parameter(Mandatory = $false)]  [string] $StorageAccountName = "sauksprdsqlbackups",
+  [Parameter(Mandatory = $false)]  [string] $StorageAccountName = "mystorageaccount",
 
   [Parameter(Mandatory = $false)] [string] $PrimaryContainerName = "sqlbackups",
   [Parameter(Mandatory = $false)] [string] $ArchiveContainerName = "archive",
