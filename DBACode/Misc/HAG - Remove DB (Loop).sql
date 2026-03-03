@@ -33,7 +33,7 @@ BEGIN
     SET @sql = '
                 -- Database: ' + QUOTENAME(@db) + '
                 ALTER AVAILABILITY GROUP ' + QUOTENAME(@ag) + ' REMOVE DATABASE ' + QUOTENAME(@db) + ';
-                ALTER DATABASE ' + QUOTENAME(@db) + ' SET OFFLINE WITH ROLLBACK IMMEDIATE;
+                --ALTER DATABASE ' + QUOTENAME(@db) + ' SET OFFLINE WITH ROLLBACK IMMEDIATE;
                 ';
 
     PRINT @sql;
