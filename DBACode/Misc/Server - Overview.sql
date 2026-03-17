@@ -47,31 +47,31 @@ SELECT		SERVERPROPERTY('ServerName')										AS ServerName
 ,			IIF(i.DiffDate IS NULL, NULL, DATEDIFF(DAY, i.DiffDate, GETDATE())) AS DiffAgeDays
 ,			IIF(l.LogDate  IS NOT NULL, 1, 0)									AS HasLogBackup
 ,			l.LogDate															AS LastLogBackup
-,			IIF(l.LogDate  IS NULL, NULL, DATEDIFF(DAY, l.LogDate, GETDATE()))  AS LogAgeDays
+,			IIF(l.LogDate IS NULL, NULL, DATEDIFF(DAY, l.LogDate, GETDATE()))	AS LogAgeDays
 FROM		sys.databases	d
 LEFT JOIN	DBSize			sz	ON sz.database_id = d.database_id
 OUTER APPLY (
 			SELECT TOP (1)
 						bs.backup_finish_date AS FullDate
 			FROM		msdb.dbo.backupset bs
-			WHERE		bs.database_name = d.name
-			AND			bs.type = 'D'
+			WHERE		bs.database_name	= d.name
+			AND			bs.type				= 'D'
 			ORDER BY	bs.backup_finish_date DESC
 			) f
 OUTER APPLY (
 			SELECT TOP (1)
 						bs.backup_finish_date AS DiffDate
 			FROM		msdb.dbo.backupset bs
-			WHERE		bs.database_name = d.name
-			AND			bs.type = 'I'
+			WHERE		bs.database_name	= d.name
+			AND			bs.type				= 'I'
 			ORDER BY	bs.backup_finish_date DESC
 			) i
 OUTER APPLY (
 			SELECT TOP (1)
 						bs.backup_finish_date AS LogDate
 			FROM		msdb.dbo.backupset bs
-			WHERE		bs.database_name = d.name
-			AND			bs.type = 'L'
+			WHERE		bs.database_name	= d.name
+			AND			bs.type				= 'L'
 			ORDER BY	bs.backup_finish_date DESC
 			) l
 WHERE		d.name != 'tempdb'
