@@ -10,8 +10,6 @@ WHERE   d.database_id   > 4
 AND     d.state         = 0                 -- ONLINE
 AND     d.name          NOT IN  (   'DBAMaint'
                                 ,   'SQLMAINT'
-                                ,   'TotalMobileIntegration'
-                                ,   'WDHInteractive'
                                 ) -- exclusions
 AND     d.name          IN  (
                             SELECT  database_name 
