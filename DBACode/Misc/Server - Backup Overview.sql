@@ -15,6 +15,13 @@ SELECT      b.database_name
             END                                                                 AS backup_type
 ,           b.backup_start_date
 ,           b.backup_finish_date
+,           CASE WHEN b.backup_finish_date IS NOT NULL 
+                THEN CONVERT(varchar(8),
+                     DATEADD(SECOND,
+                             DATEDIFF(SECOND, b.backup_start_date, b.backup_finish_date),
+                             0),
+                     108)
+            END                                                                 AS backup_duration_hms         
 ,           ISNULL(NULLIF(b.compressed_backup_size, 0), b.backup_size)          AS backup_size_bytes 
 ,           b.is_damaged
 ,           b.media_set_id
@@ -48,12 +55,14 @@ SELECT      @@SERVERNAME                                                    AS S
 ,           a.failed_count                                                  AS FailedCount
 ,           FORMAT(CONVERT(DECIMAL(18,2), a.avg_bytes / 1048576.0), 'N0')   AS AverageBackpupSizeMB 
 ,           ls.last_success_finish                                          AS LastSuccessfulBackupFinish  
+,           ls.backup_duration_hms                                              AS LastSuccessfulBackupDuration
 ,           ls.device_type_desc                                             AS DeviceTypeDescription
 ,           ls.friendly_location                                            AS BackupLocation
 FROM        agg                   a           
 LEFT JOIN   master.sys.databases  d ON d.name = a.database_name
 OUTER APPLY (
             SELECT TOP (1)  r.backup_finish_date                                                            AS last_success_finish
+            ,               r.backup_duration_hms
             ,               r.physical_device_name                                                          AS last_file_location
             ,               CASE r.device_type  WHEN 2 THEN 'Disk'
                                                 WHEN 5 THEN 'Tape'
