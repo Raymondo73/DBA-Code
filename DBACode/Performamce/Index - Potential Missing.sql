@@ -32,5 +32,3 @@ JOIN			sys.dm_db_missing_index_group_stats dm_migs	ON dm_migs.group_handle = dm_
 JOIN			sys.dm_db_missing_index_details		dm_mid	ON dm_mig.index_handle	= dm_mid.index_handle
 WHERE			dm_mid.database_ID = DB_ID()
 ORDER BY		Avg_Estimated_Impact DESC;
-
-
