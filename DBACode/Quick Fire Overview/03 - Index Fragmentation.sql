@@ -2,7 +2,7 @@
 
 -- Red flag: High fragmentation with large page counts.
 
--- Top 50 fragmented indexes >30% on tables >1000 pages
+-- Top 50 fragmented indexes > 30% on tables > 1000 pages
 SELECT TOP 50   DB_NAME(indexstats.database_id)         AS DatabaseName
 ,               dbschemas.[name]                        AS SchemaName
 ,               dbtables.[name]                         AS TableName
