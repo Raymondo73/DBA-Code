@@ -265,12 +265,12 @@ BEGIN
     FROM    sys.database_scoped_configurations
     WHERE   name IN
     (
-        ''MAXDOP'',
-        ''LEGACY_CARDINALITY_ESTIMATION'',
-        ''QUERY_OPTIMIZER_HOTFIXES'',
-        ''PARAMETER_SNIFFING'',
-        ''PARAMETER_SENSITIVE_PLAN_OPTIMIZATION'',
-        ''DOP_FEEDBACK''
+        ''MAXDOP''
+    ,   ''LEGACY_CARDINALITY_ESTIMATION''
+    ,   ''QUERY_OPTIMIZER_HOTFIXES''
+    ,   ''PARAMETER_SNIFFING''
+    ,   ''PARAMETER_SENSITIVE_PLAN_OPTIMIZATION'',
+    ,   ''DOP_FEEDBACK''
     );
     ';
     EXEC sys.sp_executesql @sql;
