@@ -101,7 +101,7 @@ CREATE TABLE #HeapIssues
 IF OBJECT_ID('tempdb..#ModulePatterns') IS NOT NULL DROP TABLE #ModulePatterns;
 CREATE TABLE #ModulePatterns
 (
-    database_name       SYSNAME,
+    database_name       SYSNAME
 ,   schema_name         SYSNAME NULL
 ,   object_name         SYSNAME NULL
 ,   type_desc           NVARCHAR(60) NULL
@@ -469,15 +469,15 @@ ORDER BY    database_name
 ,           matched_pattern;
 
 -- Top Query Store queries
-SELECT      database_name,
-            query_id
-            plan_id
-            executions
-            avg_duration_ms
-            avg_cpu_ms
-            avg_logical_reads
-            last_execution_time
-            query_sql_text
+SELECT      database_name
+,           query_id
+,           plan_id
+,           executions
+,           avg_duration_ms
+,           avg_cpu_ms
+,           avg_logical_reads
+,           last_execution_time
+,           query_sql_text
 FROM        #TopQueryStoreQueries
 ORDER BY    database_name
 ,           avg_duration_ms DESC;
