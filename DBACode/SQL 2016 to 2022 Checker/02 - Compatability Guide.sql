@@ -52,7 +52,9 @@ AND     source_database_id  IS NULL;
 --   - Not actually on the expected source instance
 --   - Unexpected edition / version / HA configuration
 --------------------------------------------------------------------------------
-SELECT  @@SERVERNAME                            AS server_name
+SELECT  
+       'Query No 0'                            AS check_number
+,       @@SERVERNAME                            AS server_name
 ,       SERVERPROPERTY('MachineName')           AS machine_name
 ,       SERVERPROPERTY('ServerName')            AS server_property_name
 ,       SERVERPROPERTY('Edition')               AS edition
@@ -78,7 +80,8 @@ Red flags:
   - Very low cost threshold for parallelism
   - Settings that nobody can explain
 --------------------------------------------------------------------------------*/
-SELECT      name
+SELECT      'Query No 1'  AS check_number
+,           name
 ,           value
 ,           value_in_use
 ,           description
@@ -116,7 +119,8 @@ DBCC TRACESTATUS(-1);
 --   - Databases still on old levels with no plan
 --   - Assumption that engine upgrade alone gives 2022 optimiser behaviour
 --------------------------------------------------------------------------------
-SELECT      d.name                          AS DBName
+SELECT      'Query No 2'                    AS check_number
+,           d.name                          AS DBName
 ,           d.compatibility_level
 ,           d.recovery_model_desc
 ,           d.containment_desc
@@ -208,8 +212,7 @@ BEGIN
     USE ' + QUOTENAME(@db) + N';
 
     INSERT #QueryStoreStatus
-    (
-        database_name
+    (   database_name
     ,   actual_state_desc
     ,   desired_state_desc
     ,   readonly_reason
@@ -250,8 +253,7 @@ BEGIN
     USE ' + QUOTENAME(@db) + N';
 
     INSERT #DbScopedConfigs
-    (
-        database_name
+    (   database_name
     ,   config_name
     ,   value
     ,   value_for_secondary
@@ -294,8 +296,7 @@ BEGIN
     USE ' + QUOTENAME(@db) + N';
 
     INSERT #PlanGuides
-    (
-        database_name
+    (   database_name
     ,   plan_guide_name
     ,   scope_type_desc
     ,   is_disabled
@@ -474,7 +475,8 @@ DEALLOCATE cur;
 --   - Counters increasing over time
 --   - Features you were not aware were still in use
 --------------------------------------------------------------------------------*/
-SELECT      object_name
+SELECT      'Query No 9'                    AS check_number
+,           object_name
 ,           counter_name
 ,           instance_name
 ,           cntr_value
@@ -493,7 +495,8 @@ ORDER BY    cntr_value DESC
 --   - READ_ONLY unexpectedly
 --   - Small storage cap
 --------------------------------------------------------------------------------
-SELECT      database_name
+SELECT      'Query No 10'                    AS check_number
+,           database_name
 ,           actual_state_desc
 ,           desired_state_desc
 ,           readonly_reason
@@ -513,7 +516,8 @@ ORDER BY    database_name;
 --   - MAXDOP not default without good reason
 --   - QUERY_OPTIMIZER_HOTFIXES changed from default
 --------------------------------------------------------------------------------*/
-SELECT      database_name
+SELECT      'Query No 11'                    AS check_number
+,           database_name
 ,           config_name
 ,           value
 ,           value_for_secondary
@@ -529,7 +533,8 @@ ORDER BY    database_name
 --   - Any active plan guide with no current owner/explanation
 --   - Old forced hints left behind
 --------------------------------------------------------------------------------*/
-SELECT      database_name
+SELECT      'Query No 12'                    AS check_number
+,           database_name
 ,           plan_guide_name
 ,           scope_type_desc
 ,           is_disabled
@@ -548,7 +553,8 @@ ORDER BY    database_name
 --   - Query-level MAXDOP or QUERYTRACEON
 --   - Old XML/string concat patterns spread widely
 --------------------------------------------------------------------------------*/
-SELECT      database_name
+SELECT      'Query No 13'                    AS check_number
+,           database_name
 ,           schema_name
 ,           object_name
 ,           object_type

@@ -47,7 +47,8 @@ AND     source_database_id IS NULL;
 --   - HA/cluster features enabled when not expected
 --   - Environment not matching documented design
 -------------------------------------------------------------------------------
-SELECT  @@SERVERNAME                            AS server_name
+SELECT  'Query No 1'                            AS check_number
+,       @@SERVERNAME                            AS server_name
 ,       SERVERPROPERTY('MachineName')           AS machine_name
 ,       SERVERPROPERTY('ServerName')            AS server_property_name
 ,       SERVERPROPERTY('Edition')               AS edition
@@ -76,7 +77,8 @@ SELECT  @@SERVERNAME                            AS server_name
 --   - PAGE_VERIFY not set as expected
 --   - Databases not ONLINE or not in expected state
 -------------------------------------------------------------------------------
-SELECT      d.name
+SELECT      'Query No 2'                    AS check_number
+,           d.name
 ,           d.compatibility_level
 ,           d.recovery_model_desc
 ,           d.containment_desc
@@ -168,7 +170,7 @@ CREATE TABLE #TopQueryStoreQueries
 );
 
 -------------------------------------------------------------------------------
--- 3) Collect per-database details
+-- 3a..f) Collect per-database details 
 --
 -- What are we doing?
 --   Looping through all ONLINE user databases and collecting a common set of
@@ -217,7 +219,8 @@ BEGIN
     IF EXISTS (SELECT 1 FROM sys.all_objects WHERE name = ''database_query_store_options'')
     BEGIN
         INSERT  #QueryStoreStatus
-        (   database_name
+        (   
+            database_name
         ,   actual_state_desc
         ,   desired_state_desc
         ,   readonly_reason
@@ -420,7 +423,6 @@ BEGIN
     WHERE   sm.definition LIKE ''%WITH (NOLOCK)%''
 
     UNION ALL
-
     SELECT  DB_NAME()
     ,       OBJECT_SCHEMA_NAME(sm.object_id)
     ,       OBJECT_NAME(sm.object_id)
@@ -495,14 +497,14 @@ BEGIN
         (   
         SELECT      qsq.query_id
         ,           qsp.plan_id
-        ,           SUM(rs.count_executions) AS executions
-        ,           AVG(CONVERT(float, rs.avg_duration)) / 1000.0 AS avg_duration_ms
-        ,           AVG(CONVERT(float, rs.avg_cpu_time)) / 1000.0 AS avg_cpu_ms
-        ,           AVG(CONVERT(float, rs.avg_logical_io_reads)) AS avg_logical_reads
-        ,           MAX(rs.last_execution_time) AS last_execution_time
-        FROM    sys.query_store_query           qsq
-        JOIN    sys.query_store_plan            qsp ON qsq.query_id = qsp.query_id
-        JOIN    sys.query_store_runtime_stats   rs  ON qsp.plan_id  = rs.plan_id
+        ,           SUM(rs.count_executions)                        AS executions
+        ,           AVG(CONVERT(float, rs.avg_duration)) / 1000.0   AS avg_duration_ms
+        ,           AVG(CONVERT(float, rs.avg_cpu_time)) / 1000.0   AS avg_cpu_ms
+        ,           AVG(CONVERT(float, rs.avg_logical_io_reads))    AS avg_logical_reads
+        ,           MAX(rs.last_execution_time)                     AS last_execution_time
+        FROM        sys.query_store_query           qsq
+        JOIN        sys.query_store_plan            qsp ON qsq.query_id = qsp.query_id
+        JOIN        sys.query_store_runtime_stats   rs  ON qsp.plan_id  = rs.plan_id
         GROUP BY    qsq.query_id
         ,           qsp.plan_id
         )
@@ -540,31 +542,6 @@ END
 CLOSE cur;
 DEALLOCATE cur;
 
--------------------------------------------------------------------------------
--- 4) Deprecated features at server level
---
--- What are we querying?
---   Deprecated feature usage counters recorded by SQL Server.
---
--- Why it matters:
---   Shows whether old syntax, objects, datatypes, or behaviours are still being
---   used anywhere on the instance.
---
--- Red flags:
---   - Non-zero counters for deprecated objects or datatypes
---   - High or rising counts for core compatibility views
---   - Deprecated LOB datatypes such as text/ntext/image still in use
--------------------------------------------------------------------------------
-SELECT      object_name
-,           counter_name
-,           instance_name
-,           cntr_value
-FROM        sys.dm_os_performance_counters
-WHERE       object_name LIKE '%Deprecated Features%'
-AND         cntr_value  > 0
-ORDER BY    cntr_value DESC
-,           counter_name
-,           instance_name;
 
 -------------------------------------------------------------------------------
 -- 5) Results
@@ -581,7 +558,8 @@ ORDER BY    cntr_value DESC
 -------------------------------------------------------------------------------
 
 -- Query Store status
-SELECT      database_name
+SELECT      'Query No 3a' AS check_number
+,           database_name
 ,           actual_state_desc
 ,           desired_state_desc
 ,           readonly_reason
@@ -595,7 +573,8 @@ FROM        #QueryStoreStatus
 ORDER BY    database_name;
 
 -- Database scoped configs
-SELECT      database_name
+SELECT      'Query No 3b' AS check_number
+,           database_name
 ,           config_name
 ,           value
 ,           value_for_secondary
@@ -605,7 +584,8 @@ ORDER BY    database_name
 ,           config_name;
 
 -- Missing index hints
-SELECT      database_name
+SELECT      'Query No 3c' AS check_number
+,           database_name
 ,           table_name
 ,           user_seeks
 ,           user_scans
@@ -618,7 +598,8 @@ FROM        #MissingIndexes
 ORDER BY    database_name, (avg_total_user_cost * avg_user_impact * (user_seeks + user_scans)) DESC;
 
 -- Heap issues
-SELECT      database_name
+SELECT      'Query No 3d' AS check_number
+,           database_name
 ,           schema_name
 ,           table_name
 ,           avg_fragmentation_in_percent
@@ -629,7 +610,8 @@ ORDER BY    database_name
 ,           forwarded_record_count DESC;
 
 -- Code review patterns
-SELECT      database_name
+SELECT      'Query No 3e' AS check_number
+,           database_name
 ,           schema_name
 ,           object_name
 ,           type_desc
@@ -641,7 +623,8 @@ ORDER BY    database_name
 ,           matched_pattern;
 
 -- Top Query Store queries
-SELECT      database_name
+SELECT      'Query No 3f' AS check_number
+,           database_name
 ,           query_id
 ,           plan_id
 ,           executions
@@ -653,3 +636,30 @@ SELECT      database_name
 FROM        #TopQueryStoreQueries
 ORDER BY    database_name
 ,           avg_duration_ms DESC;
+
+-------------------------------------------------------------------------------
+-- 4) Deprecated features at server level
+--
+-- What are we querying?
+--   Deprecated feature usage counters recorded by SQL Server.
+--
+-- Why it matters:
+--   Shows whether old syntax, objects, datatypes, or behaviours are still being
+--   used anywhere on the instance.
+--
+-- Red flags:
+--   - Non-zero counters for deprecated objects or datatypes
+--   - High or rising counts for core compatibility views
+--   - Deprecated LOB datatypes such as text/ntext/image still in use
+-------------------------------------------------------------------------------
+SELECT      'Query No 4' AS check_number
+,           object_name
+,           counter_name
+,           instance_name
+,           cntr_value
+FROM        sys.dm_os_performance_counters
+WHERE       object_name LIKE '%Deprecated Features%'
+AND         cntr_value  > 0
+ORDER BY    cntr_value DESC
+,           counter_name
+,           instance_name;
