@@ -42,16 +42,16 @@ WHERE   database_id         > 4
 AND     state_desc          = 'ONLINE'
 AND     source_database_id  IS NULL;
 
---------------------------------------------------------------------------------
--- 0. SERVER SUMMARY
---
--- What are we querying?
---   Basic engine/version summary so you know where the audit was run.
---
--- Red flags:
---   - Not actually on the expected source instance
---   - Unexpected edition / version / HA configuration
---------------------------------------------------------------------------------
+/*--------------------------------------------------------------------------------
+0. SERVER SUMMARY
+
+What are we querying?
+  Basic engine/version summary so you know where the audit was run.
+
+Red flags:
+  - Not actually on the expected source instance
+  - Unexpected edition / version / HA configuration
+--------------------------------------------------------------------------------*/
 SELECT  
        'Query No 0'                            AS check_number
 ,       @@SERVERNAME                            AS server_name
@@ -105,20 +105,20 @@ Red flags:
 --------------------------------------------------------------------------------*/
 DBCC TRACESTATUS(-1);
 
---------------------------------------------------------------------------------
--- 3. DATABASE COMPATIBILITY LEVELS
---
--- What are we querying?
---   Current compatibility level for every user database.
---
--- Why it matters:
---   Engine upgrade and optimiser behaviour change are separate steps.
---
--- Red flags:
---   - Unexpected mix of compatibility levels
---   - Databases still on old levels with no plan
---   - Assumption that engine upgrade alone gives 2022 optimiser behaviour
---------------------------------------------------------------------------------
+/*--------------------------------------------------------------------------------
+3. DATABASE COMPATIBILITY LEVELS
+
+What are we querying?
+  Current compatibility level for every user database.
+
+Why it matters:
+  Engine upgrade and optimiser behaviour change are separate steps.
+
+Red flags:
+  - Unexpected mix of compatibility levels
+  - Databases still on old levels with no plan
+  - Assumption that engine upgrade alone gives 2022 optimiser behaviour
+--------------------------------------------------------------------------------*/
 SELECT      'Query No 2'                    AS check_number
 ,           d.name                          AS DBName
 ,           d.compatibility_level
@@ -462,18 +462,18 @@ CLOSE cur;
 DEALLOCATE cur;
 
 /*--------------------------------------------------------------------------------
--- 9. DEPRECATED FEATURE USAGE
---
--- What are we querying?
---   Deprecated feature counters exposed by SQL Server.
---
--- Why it matters:
---   This is hard evidence that old features are still being used somewhere.
---
--- Red flags:
---   - Non-zero counters for deprecated functionality
---   - Counters increasing over time
---   - Features you were not aware were still in use
+9. DEPRECATED FEATURE USAGE
+
+What are we querying?
+  Deprecated feature counters exposed by SQL Server.
+
+Why it matters:
+  This is hard evidence that old features are still being used somewhere.
+
+Red flags:
+  - Non-zero counters for deprecated functionality
+  - Counters increasing over time
+  - Features you were not aware were still in use
 --------------------------------------------------------------------------------*/
 SELECT      'Query No 9'                    AS check_number
 ,           object_name
@@ -487,14 +487,14 @@ ORDER BY    cntr_value DESC
 ,           counter_name
 ,           instance_name;
 
---------------------------------------------------------------------------------
--- 10. RESULTS: QUERY STORE STATUS
---
--- Red flags to watch:
---   - OFF
---   - READ_ONLY unexpectedly
---   - Small storage cap
---------------------------------------------------------------------------------
+/*--------------------------------------------------------------------------------
+10. RESULTS: QUERY STORE STATUS
+
+Red flags to watch:
+  - OFF
+  - READ_ONLY unexpectedly
+  - Small storage cap
+--------------------------------------------------------------------------------*/
 SELECT      'Query No 10'                    AS check_number
 ,           database_name
 ,           actual_state_desc
@@ -508,13 +508,13 @@ FROM        #QueryStoreStatus
 ORDER BY    database_name;
 
 /*--------------------------------------------------------------------------------
--- 11. RESULTS: DATABASE-SCOPED OPTIMIZER SETTINGS
---
--- Red flags to watch:
---   - LEGACY_CARDINALITY_ESTIMATION = 1
---   - PARAMETER_SNIFFING = 0
---   - MAXDOP not default without good reason
---   - QUERY_OPTIMIZER_HOTFIXES changed from default
+11. RESULTS: DATABASE-SCOPED OPTIMIZER SETTINGS
+
+Red flags to watch:
+  - LEGACY_CARDINALITY_ESTIMATION = 1
+  - PARAMETER_SNIFFING = 0
+  - MAXDOP not default without good reason
+  - QUERY_OPTIMIZER_HOTFIXES changed from default
 --------------------------------------------------------------------------------*/
 SELECT      'Query No 11'                    AS check_number
 ,           database_name
@@ -527,11 +527,11 @@ ORDER BY    database_name
 ,           config_name;
 
 /*--------------------------------------------------------------------------------
--- 12. RESULTS: PLAN GUIDES
---
--- Red flags to watch:
---   - Any active plan guide with no current owner/explanation
---   - Old forced hints left behind
+12. RESULTS: PLAN GUIDES
+
+Red flags to watch:
+  - Any active plan guide with no current owner/explanation
+  - Old forced hints left behind
 --------------------------------------------------------------------------------*/
 SELECT      'Query No 12'                    AS check_number
 ,           database_name
@@ -545,13 +545,13 @@ ORDER BY    database_name
 ,           plan_guide_name;
 
 /*--------------------------------------------------------------------------------
--- 13. RESULTS: MODULE FINDINGS
---
--- Red flags to watch:
---   - Repeated forcing hints across many procedures
---   - Heavy NOLOCK / RECOMPILE / CURSOR usage
---   - Query-level MAXDOP or QUERYTRACEON
---   - Old XML/string concat patterns spread widely
+13. RESULTS: MODULE FINDINGS
+
+Red flags to watch:
+  - Repeated forcing hints across many procedures
+  - Heavy NOLOCK / RECOMPILE / CURSOR usage
+  - Query-level MAXDOP or QUERYTRACEON
+  - Old XML/string concat patterns spread widely
 --------------------------------------------------------------------------------*/
 SELECT      'Query No 13'                    AS check_number
 ,           database_name

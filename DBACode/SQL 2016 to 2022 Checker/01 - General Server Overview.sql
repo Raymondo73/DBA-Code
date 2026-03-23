@@ -32,21 +32,21 @@ WHERE   database_id > 4
 AND     state_desc = 'ONLINE'
 AND     source_database_id IS NULL;
 
--------------------------------------------------------------------------------
--- 1) Server inventory
---
--- What are we querying?
---   Basic server-level identity and platform details such as version, edition,
---   clustering, HADR status, and audit timestamp.
---
--- Why it matters:
---   Establishes the baseline environment and confirms where the audit was run.
---
--- Red flags:
---   - Unexpected edition or version
---   - HA/cluster features enabled when not expected
---   - Environment not matching documented design
--------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------
+1) Server inventory
+
+What are we querying?
+  Basic server-level identity and platform details such as version, edition,
+  clustering, HADR status, and audit timestamp.
+
+Why it matters:
+  Establishes the baseline environment and confirms where the audit was run.
+
+Red flags:
+  - Unexpected edition or version
+  - HA/cluster features enabled when not expected
+  - Environment not matching documented design
+-------------------------------------------------------------------------------*/
 SELECT  'Query No 1'                            AS check_number
 ,       @@SERVERNAME                            AS server_name
 ,       SERVERPROPERTY('MachineName')           AS machine_name
@@ -60,23 +60,23 @@ SELECT  'Query No 1'                            AS check_number
 ,       SERVERPROPERTY('IsHadrEnabled')         AS is_hadr_enabled
 ,       GETDATE()                               AS audit_time;
 
--------------------------------------------------------------------------------
--- 2) Database inventory
---
--- What are we querying?
---   High-level database settings including compatibility level, recovery model,
---   containment, page verification, stats settings, Query Store flag, and state.
---
--- Why it matters:
---   Gives a quick estate-wide view of database configuration and highlights
---   inconsistencies between databases.
---
--- Red flags:
---   - Unexpected compatibility-level mix
---   - Auto-stats disabled without good reason
---   - PAGE_VERIFY not set as expected
---   - Databases not ONLINE or not in expected state
--------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------
+2) Database inventory
+
+What are we querying?
+  High-level database settings including compatibility level, recovery model,
+  containment, page verification, stats settings, Query Store flag, and state.
+
+Why it matters:
+  Gives a quick estate-wide view of database configuration and highlights
+  inconsistencies between databases.
+
+Red flags:
+  - Unexpected compatibility-level mix
+  - Auto-stats disabled without good reason
+  - PAGE_VERIFY not set as expected
+  - Databases not ONLINE or not in expected state
+-------------------------------------------------------------------------------*/
 SELECT      'Query No 2'                    AS check_number
 ,           d.name
 ,           d.compatibility_level
@@ -169,21 +169,21 @@ CREATE TABLE #TopQueryStoreQueries
 ,   query_sql_text      NVARCHAR(MAX) NULL
 );
 
--------------------------------------------------------------------------------
--- 3a..f) Collect per-database details 
---
--- What are we doing?
---   Looping through all ONLINE user databases and collecting a common set of
---   findings into temp tables for later review.
---
--- Why it matters:
---   Ensures the audit is repeatable and consistent across the whole instance.
---
--- Red flags:
---   - Errors against individual databases
---   - Missing catalog views where expected
---   - Databases skipped due to state or access issues
--------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------
+3a..f) Collect per-database details 
+
+What are we doing?
+  Looping through all ONLINE user databases and collecting a common set of
+  findings into temp tables for later review.
+
+Why it matters:
+  Ensures the audit is repeatable and consistent across the whole instance.
+
+Red flags:
+  - Errors against individual databases
+  - Missing catalog views where expected
+  - Databases skipped due to state or access issues
+-------------------------------------------------------------------------------*/
 DECLARE @db     SYSNAME
 ,       @sql    NVARCHAR(MAX);
 
@@ -197,22 +197,22 @@ FETCH NEXT FROM cur INTO @db;
 
 WHILE @@FETCH_STATUS = 0
 BEGIN
-    ----------------------------------------------------------------------------
-    -- Query Store status
-    --
-    -- What are we querying?
-    --   Current Query Store operational and storage settings for each database.
-    --
-    -- Why it matters:
-    --   Query Store is key for workload baselining, regression analysis, and
-    --   identifying expensive queries over time.
-    --
-    -- Red flags:
-    --   - Query Store OFF
-    --   - Query Store READ_ONLY unexpectedly
-    --   - Small storage cap for busy databases
-    --   - Wait stats capture not enabled where expected
-    ----------------------------------------------------------------------------
+    /*----------------------------------------------------------------------------
+    Query Store status
+    
+    What are we querying?
+      Current Query Store operational and storage settings for each database.
+    
+    Why it matters:
+      Query Store is key for workload baselining, regression analysis, and
+      identifying expensive queries over time.
+    
+    Red flags:
+      - Query Store OFF
+      - Query Store READ_ONLY unexpectedly
+      - Small storage cap for busy databases
+      - Wait stats capture not enabled where expected
+    ----------------------------------------------------------------------------*/
     SET @sql = N'
     USE ' + QUOTENAME(@db) + N';
 
@@ -246,23 +246,23 @@ BEGIN
     ';
     EXEC sys.sp_executesql @sql;
 
-    ----------------------------------------------------------------------------
-    -- Database scoped configs
-    --
-    -- What are we querying?
-    --   Database-level optimizer and execution settings such as legacy CE,
-    --   optimizer hotfixes, parameter sniffing, and MAXDOP.
-    --
-    -- Why it matters:
-    --   These can materially change plan choice and query behaviour independently
-    --   of server-level defaults.
-    --
-    -- Red flags:
-    --   - LEGACY_CARDINALITY_ESTIMATION enabled
-    --   - PARAMETER_SNIFFING disabled
-    --   - Non-default MAXDOP without clear reason
-    --   - Optimizer settings differing unexpectedly across databases
-    ----------------------------------------------------------------------------
+    /*----------------------------------------------------------------------------
+    Database scoped configs
+    
+    What are we querying?
+      Database-level optimizer and execution settings such as legacy CE,
+      optimizer hotfixes, parameter sniffing, and MAXDOP.
+    
+    Why it matters:
+      These can materially change plan choice and query behaviour independently
+      of server-level defaults.
+    
+    Red flags:
+      - LEGACY_CARDINALITY_ESTIMATION enabled
+      - PARAMETER_SNIFFING disabled
+      - Non-default MAXDOP without clear reason
+      - Optimizer settings differing unexpectedly across databases
+    ----------------------------------------------------------------------------*/
     SET @sql = N'
     USE ' + QUOTENAME(@db) + N';
 
@@ -290,25 +290,25 @@ BEGIN
     ';
     EXEC sys.sp_executesql @sql;
 
-    ----------------------------------------------------------------------------
-    -- Missing index hints
-    --
-    -- What are we querying?
-    --   SQL Server missing-index recommendations derived from workload activity.
-    --
-    -- Why it matters:
-    --   Highlights tables and predicates where additional indexing may reduce
-    --   query cost or improve access paths.
-    --
-    -- Red flags:
-    --   - Large number of high-impact suggestions
-    --   - Repeated recommendations against heavily used tables
-    --   - Signs of weak or inconsistent indexing strategy
-    --
-    -- Notes:
-    --   - Advisory only; do not create indexes blindly
-    --   - Recommendations should be reviewed against existing indexes and workload
-    ----------------------------------------------------------------------------
+    /*----------------------------------------------------------------------------
+    Missing index hints
+    
+    What are we querying?
+      SQL Server missing-index recommendations derived from workload activity.
+    
+    Why it matters:
+      Highlights tables and predicates where additional indexing may reduce
+      query cost or improve access paths.
+    
+    Red flags:
+      - Large number of high-impact suggestions
+      - Repeated recommendations against heavily used tables
+      - Signs of weak or inconsistent indexing strategy
+    
+    Notes:
+      - Advisory only; do not create indexes blindly
+      - Recommendations should be reviewed against existing indexes and workload
+    ----------------------------------------------------------------------------*/
     SET @sql = N'
     USE ' + QUOTENAME(@db) + N';
 
@@ -341,24 +341,24 @@ BEGIN
     ';
     EXEC sys.sp_executesql @sql;
 
-    ----------------------------------------------------------------------------
-    -- Heap forwarded records
-    --
-    -- What are we querying?
-    --   Heap tables with forwarded records and fragmentation characteristics.
-    --
-    -- Why it matters:
-    --   Forwarded records increase I/O and can degrade performance, especially on
-    --   frequently updated heap tables.
-    --
-    -- Red flags:
-    --   - High forwarded_record_count
-    --   - Large heaps with significant forwarding
-    --   - Repeated issues on actively queried tables
-    --
-    -- Notes:
-    --   - This is mainly an operational tuning check, not an upgrade-specific risk
-    ----------------------------------------------------------------------------
+    /*----------------------------------------------------------------------------
+    Heap forwarded records
+    
+    What are we querying?
+      Heap tables with forwarded records and fragmentation characteristics.
+    
+    Why it matters:
+      Forwarded records increase I/O and can degrade performance, especially on
+      frequently updated heap tables.
+    
+    Red flags:
+      - High forwarded_record_count
+      - Large heaps with significant forwarding
+      - Repeated issues on actively queried tables
+    
+    Notes:
+      - This is mainly an operational tuning check, not an upgrade-specific risk
+    ----------------------------------------------------------------------------*/
     SET @sql = N'
     USE ' + QUOTENAME(@db) + N';
 
@@ -382,27 +382,27 @@ BEGIN
     ';
     EXEC sys.sp_executesql @sql;
 
-    ----------------------------------------------------------------------------
-    -- Code review patterns
-    --
-    -- What are we querying?
-    --   Module definitions for common SQL patterns such as NOLOCK, RECOMPILE,
-    --   CURSOR usage, SELECT *, and FOR XML PATH string concatenation.
-    --
-    -- Why it matters:
-    --   These patterns can indicate legacy coding styles, maintainability issues,
-    --   or performance-related workarounds worth reviewing.
-    --
-    -- Red flags:
-    --   - Heavy NOLOCK usage
-    --   - Frequent OPTION (RECOMPILE)
-    --   - Cursor-heavy procedural logic
-    --   - Widespread SELECT *
-    --   - Older string concatenation patterns still common
-    --
-    -- Notes:
-    --   - These are review flags, not proof of a problem
-    ----------------------------------------------------------------------------
+    /*----------------------------------------------------------------------------
+    Code review patterns
+    
+    What are we querying?
+      Module definitions for common SQL patterns such as NOLOCK, RECOMPILE,
+      CURSOR usage, SELECT *, and FOR XML PATH string concatenation.
+    
+    Why it matters:
+      These patterns can indicate legacy coding styles, maintainability issues,
+      or performance-related workarounds worth reviewing.
+    
+    Red flags:
+      - Heavy NOLOCK usage
+      - Frequent OPTION (RECOMPILE)
+      - Cursor-heavy procedural logic
+      - Widespread SELECT *
+      - Older string concatenation patterns still common
+    
+    Notes:
+      - These are review flags, not proof of a problem
+    ----------------------------------------------------------------------------*/
     SET @sql = N'
     USE ' + QUOTENAME(@db) + N';
 
@@ -467,26 +467,26 @@ BEGIN
     ';
     EXEC sys.sp_executesql @sql;
 
-    ----------------------------------------------------------------------------
-    -- Top Query Store queries
-    --
-    -- What are we querying?
-    --   Highest-duration queries captured in Query Store for each database,
-    --   including executions, CPU, logical reads, and last execution time.
-    --
-    -- Why it matters:
-    --   Helps prioritise which queries are most expensive and most likely to
-    --   deserve investigation or tuning.
-    --
-    -- Red flags:
-    --   - Very high average duration
-    --   - High CPU or logical reads
-    --   - Frequently executed expensive queries
-    --   - Recent execution of consistently costly statements
-    --
-    -- Notes:
-    --   - Only populated where Query Store exists and contains data
-    ----------------------------------------------------------------------------
+    /*----------------------------------------------------------------------------
+    Top Query Store queries
+    
+    What are we querying?
+      Highest-duration queries captured in Query Store for each database,
+      including executions, CPU, logical reads, and last execution time.
+    
+    Why it matters:
+      Helps prioritise which queries are most expensive and most likely to
+      deserve investigation or tuning.
+    
+    Red flags:
+      - Very high average duration
+      - High CPU or logical reads
+      - Frequently executed expensive queries
+      - Recent execution of consistently costly statements
+    
+    Notes:
+      - Only populated where Query Store exists and contains data
+    ----------------------------------------------------------------------------*/
     SET @sql = N'
     USE ' + QUOTENAME(@db) + N';
 
@@ -543,19 +543,19 @@ CLOSE cur;
 DEALLOCATE cur;
 
 
--------------------------------------------------------------------------------
--- 5) Results
---
--- What are we doing?
---   Returning the consolidated outputs gathered during the audit loop.
---
--- Why it matters:
---   Presents a reviewable summary of findings across all databases in one place.
---
--- Red flags:
---   - Findings should be interpreted in context; some indicate configuration
---     risk, others operational tuning opportunities, and others code debt
--------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------
+5) Results
+
+What are we doing?
+  Returning the consolidated outputs gathered during the audit loop.
+
+Why it matters:
+  Presents a reviewable summary of findings across all databases in one place.
+
+Red flags:
+  - Findings should be interpreted in context; some indicate configuration
+    risk, others operational tuning opportunities, and others code debt
+-------------------------------------------------------------------------------*/
 
 -- Query Store status
 SELECT      'Query No 3a' AS check_number
@@ -637,21 +637,21 @@ FROM        #TopQueryStoreQueries
 ORDER BY    database_name
 ,           avg_duration_ms DESC;
 
--------------------------------------------------------------------------------
--- 4) Deprecated features at server level
---
--- What are we querying?
---   Deprecated feature usage counters recorded by SQL Server.
---
--- Why it matters:
---   Shows whether old syntax, objects, datatypes, or behaviours are still being
---   used anywhere on the instance.
---
--- Red flags:
---   - Non-zero counters for deprecated objects or datatypes
---   - High or rising counts for core compatibility views
---   - Deprecated LOB datatypes such as text/ntext/image still in use
--------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------
+4) Deprecated features at server level
+
+What are we querying?
+  Deprecated feature usage counters recorded by SQL Server.
+
+Why it matters:
+  Shows whether old syntax, objects, datatypes, or behaviours are still being
+  used anywhere on the instance.
+
+Red flags:
+  - Non-zero counters for deprecated objects or datatypes
+  - High or rising counts for core compatibility views
+  - Deprecated LOB datatypes such as text/ntext/image still in use
+-------------------------------------------------------------------------------*/
 SELECT      'Query No 4' AS check_number
 ,           object_name
 ,           counter_name
